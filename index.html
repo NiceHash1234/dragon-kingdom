@@ -123,6 +123,11 @@ b.good{font-size:.7rem}
 .log b{color:var(--ink);font-weight:500}
 .result{border-radius:10px;padding:10px 12px}.result h2{font-size:1.4rem}.result p{margin:4px 0 0;font-size:.85rem}
 .result.win{background:color-mix(in srgb,var(--ok) 16%,var(--dusk))}.result.lose{background:color-mix(in srgb,var(--danger) 14%,var(--dusk))}
+.stage{position:relative;height:230px;margin-inline:-16px;overflow:hidden;background:linear-gradient(#2c3866,#161c33)}
+.stage canvas{display:block}
+.pop{position:absolute;transform:translate(-50%,-50%);font-family:var(--f-mono);font-weight:700;font-size:1.15rem;pointer-events:none;white-space:nowrap;text-shadow:0 2px 6px rgba(0,0,0,.7);animation:pop 1s ease-out forwards}
+.pop.hit{color:#fff1a8}.pop.hurt{color:#ff8a7a}.pop.loss{font-size:.75rem;color:#ffd0c8}
+@keyframes pop{0%{opacity:0;transform:translate(-50%,-30%) scale(.6)}15%{opacity:1;transform:translate(-50%,-70%) scale(1.15)}100%{opacity:0;transform:translate(-50%,-200%) scale(1)}}
 @media (max-width:720px){
   .panel{left:0;right:0;top:auto;bottom:0;width:auto;max-height:50%;border-radius:16px 16px 0 0;padding-bottom:env(safe-area-inset-bottom,0px)}
   .toast{bottom:calc(50% + 12px)}
@@ -682,48 +687,36 @@ function openBattle(m) {
   battle = { m, dragonId: ready[0]?.id ?? -1, sent: { ...G.troops }, phase: "setup" };
   renderBattle();
 }
-function renderBattle() {
-  const box = document.getElementById("battle");
-  if (!battle) { box.hidden = true; return; }
-  box.hidden = false;
+function battleHead() {
   const { m } = battle, T = MONSTER_TYPES[m.type], st = monsterStats(m.lvl), E = ELEMENTS[m.el];
-  const d = state.dragons[battle.dragonId];
-  const head = `<div class="b-head"><div><h2>${E.name}の${T.name} <small>Lv ${m.lvl}</small></h2>
+  return `<div class="b-head"><div><h2>${E.name}の${T.name} <small>Lv ${m.lvl}</small></h2>
     <p class="hint">HP ${num(st.hp)} · 攻撃 ${st.atk} · 弱点：${TROOPS[T.weak].name}・${ELEMENTS[(m.el + 3) % 4].name}属性のドラゴン</p></div>
     <button class="close" data-b="close" aria-label="閉じる">×</button></div>`;
-  let body = "";
-  if (battle.phase === "setup") {
-    const mine = state.dragons.filter(x => isMine(x.owner));
-    const opts = mine.map(x => { const s = stamina(x.id), e = ELEMENTS[x.element];
-      const tag = beats(x.element, m.el) ? "有利" : beats(m.el, x.element) ? "不利" : "";
-      return `<button class="pick ${x.id === battle.dragonId ? "on" : ""}" data-b="dragon" data-id="${x.id}" ${s.v ? "" : "disabled"}>
-        <i class="dot" style="background:${e.color}"></i>${e.name} #${x.id} Lv${x.level}
-        <small>攻撃 ${Math.round(dragonAtk(x, m))}${tag ? `・${tag}` : ""}・スタミナ ${s.v}/${STAMINA_MAX}</small></button>`; }).join("");
-    const sliders = Object.entries(TROOPS).map(([k, t]) => `
-      <label class="slider" for="s-${k}"><span>${t.name}${k === T.weak ? " <b class=\"good\">弱点</b>" : ""}</span>
-        <input id="s-${k}" type="range" min="0" max="${G.troops[k]}" value="${battle.sent[k]}" data-k="${k}">
-        <output>${battle.sent[k]} / ${G.troops[k]}</output></label>`).join("");
-    const any = (d ? 1 : 0) + Object.values(battle.sent).reduce((a, b) => a + b, 0);
-    const rate = any ? winRate(m, d, battle.sent) : 0;
-    body = `<p class="label">出撃するドラゴン</p><div class="picks">${opts}
-        <button class="pick ${battle.dragonId === -1 ? "on" : ""}" data-b="dragon" data-id="-1">ドラゴンなし<small>兵士だけで戦う</small></button></div>
-      <p class="label">兵士</p>${sliders}
-      <div class="rate"><span>勝率の目安</span><b class="${rate >= 70 ? "good" : rate >= 40 ? "" : "bad"}">${rate}%</b></div>
-      <button class="primary" data-b="go" ${any ? "" : "disabled"}>出撃する</button>`;
-  } else {
-    const r = battle.result, shown = r.log.slice(0, battle.step);
-    const last = shown[shown.length - 1], hp = last ? last.mhp : r.hp0;
-    body = `<div class="hpbar"><i style="width:${Math.max(0, hp / r.hp0 * 100)}%"></i><span>${num(hp)} / ${num(r.hp0)}</span></div>
-      <ol class="log">${shown.map(l => `<li><b>${l.r}回戦</b> 与えたダメージ ${num(l.pd)}${l.md ? `・受けたダメージ ${num(l.md)}` : ""}${Object.entries(l.kill).filter(([, n]) => n).map(([k, n]) => `・${TROOPS[k].name}-${n}`).join("")}</li>`).join("")}</ol>`;
-    if (battle.phase === "done") {
-      const rw = battle.reward;
-      body += r.win
-        ? `<div class="result win"><h2>勝利！</h2><p>コイン +${rw.coins}・経験値 +${rw.exp}${rw.chest ? `・宝箱からコイン +${rw.chest}` : ""}</p>${rw.levelUp ? `<p>王国がLv${rw.levelUp}になりました</p>` : ""}</div>`
-        : `<div class="result lose"><h2>撤退</h2><p>${MAX_ROUNDS}回戦で倒しきれませんでした。兵士を増やすか、有利な属性のドラゴンで挑みましょう。</p></div>`;
-      body += `<p class="hint">失った兵士：${Object.entries(r.lost).map(([k, n]) => `${TROOPS[k].name}${n}`).join("・")}</p><button class="primary" data-b="close">閉じる</button>`;
-    }
-  }
-  box.querySelector(".b-card").innerHTML = head + body;
+}
+function renderBattle() {
+  const box = document.getElementById("battle");
+  if (!battle) { box.hidden = true; stageStop(); return; }
+  box.hidden = false;
+  if (battle.phase !== "setup") return;
+  const { m } = battle, T = MONSTER_TYPES[m.type];
+  const d = state.dragons[battle.dragonId];
+  const mine = state.dragons.filter(x => isMine(x.owner));
+  const opts = mine.map(x => { const s = stamina(x.id), e = ELEMENTS[x.element];
+    const tag = beats(x.element, m.el) ? "有利" : beats(m.el, x.element) ? "不利" : "";
+    return `<button class="pick ${x.id === battle.dragonId ? "on" : ""}" data-b="dragon" data-id="${x.id}" ${s.v ? "" : "disabled"}>
+      <i class="dot" style="background:${e.color}"></i>${e.name} #${x.id} Lv${x.level}
+      <small>攻撃 ${Math.round(dragonAtk(x, m))}${tag ? `・${tag}` : ""}・スタミナ ${s.v}/${STAMINA_MAX}</small></button>`; }).join("");
+  const sliders = Object.entries(TROOPS).map(([k, t]) => `
+    <label class="slider" for="s-${k}"><span>${t.name}${k === T.weak ? " <b class=\"good\">弱点</b>" : ""}</span>
+      <input id="s-${k}" type="range" min="0" max="${G.troops[k]}" value="${battle.sent[k]}" data-k="${k}">
+      <output>${battle.sent[k]} / ${G.troops[k]}</output></label>`).join("");
+  const any = (d ? 1 : 0) + Object.values(battle.sent).reduce((a, b) => a + b, 0);
+  const rate = any ? winRate(m, d, battle.sent) : 0;
+  box.querySelector(".b-card").innerHTML = battleHead() + `<p class="label">出撃するドラゴン</p><div class="picks">${opts}
+      <button class="pick ${battle.dragonId === -1 ? "on" : ""}" data-b="dragon" data-id="-1">ドラゴンなし<small>兵士だけで戦う</small></button></div>
+    <p class="label">兵士</p>${sliders}
+    <div class="rate"><span>勝率の目安</span><b class="${rate >= 70 ? "good" : rate >= 40 ? "" : "bad"}">${rate}%</b></div>
+    <button class="primary" data-b="go" ${any ? "" : "disabled"}>出撃する</button>`;
 }
 function startBattle() {
   const { m } = battle, d = state.dragons[battle.dragonId];
@@ -741,16 +734,216 @@ function startBattle() {
     if (kLevel() > before) rw.levelUp = kLevel();
   }
   saveGame();
-  Object.assign(battle, { phase: "fight", result: r, reward: rw, step: 0 });
-  const stepper = () => {
-    if (!battle || battle.phase !== "fight") return;
-    battle.step++;
-    if (battle.step >= r.log.length) { battle.phase = "done"; drawMonsters(); render(); }
-    renderBattle();
-    if (battle.phase === "fight") setTimeout(stepper, still ? 50 : 650);
+  Object.assign(battle, { phase: "fight", result: r, reward: rw });
+  const card = document.querySelector("#battle .b-card");
+  card.innerHTML = battleHead() + `<div class="stage" id="stage"></div>
+    <div class="hpbar"><i id="b-hp" style="width:100%"></i><span id="b-hpt">${num(r.hp0)} / ${num(r.hp0)}</span></div>
+    <ol class="log" id="b-log"></ol><div id="b-end"></div>`;
+  if (!still) stageStart(document.getElementById("stage"), m, d, battle.sent);
+  else document.getElementById("stage").hidden = true;
+  const me = battle;
+  let i = 0;
+  const next = () => {
+    if (battle !== me) return;
+    const l = r.log[i], last = i === r.log.length - 1;
+    const onHit = () => {
+      const hp = document.getElementById("b-hp"); if (!hp) return;
+      hp.style.width = `${Math.max(0, l.mhp / r.hp0 * 100)}%`;
+      document.getElementById("b-hpt").textContent = `${num(l.mhp)} / ${num(r.hp0)}`;
+      const li = document.createElement("li");
+      li.innerHTML = `<b>${l.r}回戦</b> 与えたダメージ ${num(l.pd)}${l.md ? `・受けたダメージ ${num(l.md)}` : ""}${Object.entries(l.kill).filter(([, n]) => n).map(([k, n]) => `・${TROOPS[k].name}-${n}`).join("")}`;
+      document.getElementById("b-log").appendChild(li);
+    };
+    let dur;
+    if (still) { onHit(); dur = 120; } else dur = stageRound(l, last, r.win, onHit);
+    i++;
+    setTimeout(last ? finish : next, dur);
   };
-  renderBattle(); setTimeout(stepper, 300);
+  const finish = () => {
+    if (battle !== me) return;
+    battle.phase = "done";
+    document.getElementById("b-end").innerHTML = (r.win
+      ? `<div class="result win"><h2>勝利！</h2><p>コイン +${rw.coins}・経験値 +${rw.exp}${rw.chest ? `・宝箱からコイン +${rw.chest}` : ""}</p>${rw.levelUp ? `<p>王国がLv${rw.levelUp}になりました</p>` : ""}</div>`
+      : `<div class="result lose"><h2>撤退</h2><p>${MAX_ROUNDS}回戦で倒しきれませんでした。兵士を増やすか、有利な属性のドラゴンで挑みましょう。</p></div>`)
+      + `<p class="hint">失った兵士：${Object.entries(r.lost).map(([k, n]) => `${TROOPS[k].name}${n}`).join("・")}</p><button class="primary" data-b="close">閉じる</button>`;
+    drawMonsters(); render();
+  };
+  setTimeout(next, 450);
 }
+/* ===================== 戦闘アニメーション（3D） ===================== */
+const UNIT_SHOW = 10;   // 兵種ごとに表示する最大人数
+const B3 = { r: null, raf: 0, tweens: [], parts: [], units: [], now: 0 };
+
+function makeUnit(k) {
+  const g = new THREE.Group(), L = c => new THREE.MeshLambertMaterial({ color: c });
+  const skin = L(0xe8c39e);
+  if (k === "cav") {
+    const horse = new THREE.Mesh(new THREE.BoxGeometry(.2, .09, .07), L(0x7a5232)); horse.position.y = .12; g.add(horse);
+    const neck = new THREE.Mesh(new THREE.BoxGeometry(.05, .1, .05), L(0x7a5232)); neck.position.set(.1, .18, 0); neck.rotation.z = -.5; g.add(neck);
+    [[-.07, -.025], [-.07, .025], [.07, -.025], [.07, .025]].forEach(([x, z]) => { const l = new THREE.Mesh(new THREE.BoxGeometry(.02, .09, .02), L(0x5a3a22)); l.position.set(x, .04, z); g.add(l); });
+    const rider = new THREE.Mesh(new THREE.BoxGeometry(.06, .1, .05), L(0xb8433a)); rider.position.y = .22; g.add(rider);
+    const head = new THREE.Mesh(new THREE.SphereGeometry(.028, 8, 6), skin); head.position.y = .3; g.add(head);
+    const lance = new THREE.Mesh(new THREE.CylinderGeometry(.006, .006, .3, 4), L(0xd9d2c3)); lance.rotation.z = -1.3; lance.position.set(.12, .24, .04); g.add(lance);
+  } else {
+    const body = new THREE.Mesh(new THREE.BoxGeometry(.07, .12, .05), L(k === "inf" ? 0x6f82b8 : 0x5f8f4e)); body.position.y = .1; g.add(body);
+    const head = new THREE.Mesh(new THREE.SphereGeometry(.03, 8, 6), skin); head.position.y = .19; g.add(head);
+    if (k === "inf") {
+      const spear = new THREE.Mesh(new THREE.CylinderGeometry(.005, .005, .26, 4), L(0xd9d2c3)); spear.position.set(.05, .14, 0); g.add(spear);
+      const shield = new THREE.Mesh(new THREE.BoxGeometry(.015, .08, .06), L(0xc9a24b)); shield.position.set(.045, .1, 0); g.add(shield);
+    } else {
+      const bow = new THREE.Mesh(new THREE.TorusGeometry(.06, .006, 4, 10, Math.PI), L(0x8a5a2b)); bow.rotation.z = -Math.PI / 2; bow.position.set(.05, .12, 0); g.add(bow);
+    }
+  }
+  return g;
+}
+
+function stageStart(el, m, d, sent) {
+  stageStop();
+  const w = el.clientWidth || 360, h = 230;
+  const r = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  r.setPixelRatio(Math.min(devicePixelRatio, 2)); r.setSize(w, h); el.prepend(r.domElement);
+  const sc = new THREE.Scene();
+  const cam = new THREE.PerspectiveCamera(40, w / h, .1, 50); cam.position.set(0, 1.6, 4.2); cam.lookAt(0, .45, 0);
+  sc.add(new THREE.HemisphereLight(0xdfe6ff, 0x30281c, .85));
+  const sunL = new THREE.DirectionalLight(0xffe2b0, .8); sunL.position.set(-3, 5, 4); sc.add(sunL);
+  const ground = new THREE.Mesh(new THREE.CircleGeometry(3.2, 40), new THREE.MeshLambertMaterial({ color: TERRAIN[TER[m.tile]].color }));
+  ground.rotation.x = -Math.PI / 2; sc.add(ground);
+
+  // 魔物
+  const mon = makeMonster(m); mon.position.set(1.35, 0, 0); mon.rotation.y = -Math.PI / 2;
+  mon.scale.multiplyScalar(2.6); mon.userData.home = mon.position.clone(); sc.add(mon);
+  // ドラゴン
+  let dra = null;
+  if (d) { dra = makeDragon(d.element, d.level); dra.scale.multiplyScalar(1.5); dra.rotation.y = Math.PI / 2; dra.position.set(-1.7, 1.05, 0); dra.userData.home = dra.position.clone(); sc.add(dra); }
+  // 兵士
+  const rows = { cav: -.35, inf: -.7, arc: -1.05 }, units = [];
+  for (const k in TROOPS) {
+    const show = Math.min(UNIT_SHOW, sent[k]); if (!show) continue;
+    for (let i = 0; i < show; i++) {
+      const u = makeUnit(k), z = (i - (show - 1) / 2) * .16, x = rows[k] + (i % 2) * .08;
+      u.position.set(x, 0, z); u.userData = { k, home: u.position.clone(), alive: true }; sc.add(u); units.push(u);
+    }
+  }
+  Object.assign(B3, { r, sc, cam, el, mon, dra, d, units, sent: { ...sent }, alive: { ...sent }, tweens: [], parts: [], now: performance.now(), m });
+  const loop = t => {
+    B3.raf = requestAnimationFrame(loop);
+    const dt = Math.min(50, t - B3.now); B3.now = t;
+    B3.tweens = B3.tweens.filter(tw => { const p = (t - tw.t0) / tw.dur; if (p < 0) return true; tw.fn(Math.min(1, p)); if (p >= 1) { tw.done?.(); return false; } return true; });
+    B3.parts = B3.parts.filter(pt => { pt.life -= dt; pt.mesh.position.addScaledVector(pt.v, dt / 1000); pt.v.y -= (pt.g || 0) * dt / 1000;
+      pt.mesh.material.opacity = Math.max(0, pt.life / pt.max); if (pt.life <= 0) { sc.remove(pt.mesh); return false; } return true; });
+    const s = t / 1000;
+    if (dra && !dra.userData.busy) dra.position.y = dra.userData.home.y + Math.sin(s * 2.2) * .07;
+    if (dra) dra.userData.wings.forEach(w => w.pivot.rotation.z = w.s * Math.sin(s * 9) * .6);
+    if (!mon.userData.busy && !mon.userData.dead) mon.position.y = Math.abs(Math.sin(s * 2.4)) * .05;
+    r.render(sc, cam);
+  };
+  B3.raf = requestAnimationFrame(loop);
+}
+function stageStop() {
+  cancelAnimationFrame(B3.raf);
+  if (B3.r) { B3.r.dispose(); B3.r.domElement.remove(); }
+  B3.el?.querySelectorAll(".pop").forEach(p => p.remove());
+  Object.assign(B3, { r: null, tweens: [], parts: [], units: [] });
+}
+const tween = (delay, dur, fn, done) => B3.tweens.push({ t0: performance.now() + delay, dur, fn, done });
+const ease = p => p < .5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
+
+function popText(pos3, text, cls) {
+  if (!B3.r) return;
+  const v = pos3.clone().project(B3.cam), el = document.createElement("div");
+  el.className = "pop " + (cls || ""); el.textContent = text;
+  el.style.left = `${(v.x + 1) / 2 * B3.el.clientWidth}px`; el.style.top = `${(1 - v.y) / 2 * 230}px`;
+  B3.el.appendChild(el); setTimeout(() => el.remove(), 1100);
+}
+function burst(from, to, color, n, spread, life, size) {
+  for (let i = 0; i < n; i++) {
+    const mesh = new THREE.Mesh(new THREE.SphereGeometry(size || .04, 6, 4), new THREE.MeshBasicMaterial({ color, transparent: true }));
+    mesh.position.copy(from);
+    const dir = to ? to.clone().sub(from).multiplyScalar(1 / (life / 1000)) : new THREE.Vector3();
+    dir.add(new THREE.Vector3((Math.random() - .5) * spread, (Math.random() - .5) * spread, (Math.random() - .5) * spread));
+    const delay = to ? i * 12 : 0;
+    setTimeout(() => { if (!B3.r) return; B3.sc.add(mesh); B3.parts.push({ mesh, v: dir, life, max: life, g: to ? 0 : 2 }); }, delay);
+  }
+}
+function flash(obj, color) {
+  const mats = []; obj.traverse(o => { if (o.material && o.material.emissive) mats.push(o.material); });
+  mats.forEach(mt => mt.emissive.setHex(color));
+  setTimeout(() => mats.forEach(mt => mt.emissive.setHex(0)), 160);
+}
+
+/* 1回戦ぶんの演出。所要時間(ms)を返す */
+function stageRound(l, last, win, onHit) {
+  if (!B3.r) { onHit(); return 200; }
+  const { mon, dra, units, m } = B3, monPos = mon.userData.home.clone().add(new THREE.Vector3(0, .45, 0));
+  const living = units.filter(u => u.userData.alive);
+  // 兵士の突撃
+  living.forEach(u => { const hx = u.userData.home.x, reach = u.userData.k === "arc" ? .08 : .35;
+    tween(Math.random() * 80, 420, p => u.position.x = hx + Math.sin(p * Math.PI) * reach); });
+  // 矢
+  living.filter(u => u.userData.k === "arc").forEach((u, i) => {
+    const arrow = new THREE.Mesh(new THREE.CylinderGeometry(.006, .006, .14, 4), new THREE.MeshBasicMaterial({ color: 0xf2e6c8 }));
+    arrow.rotation.z = -Math.PI / 2; const a = u.position.clone().add(new THREE.Vector3(.05, .15, 0)), b = monPos.clone().add(new THREE.Vector3(0, 0, (Math.random() - .5) * .3));
+    tween(120 + i * 25, 380, p => { if (!arrow.parent) B3.sc.add(arrow); arrow.position.lerpVectors(a, b, p); arrow.position.y += Math.sin(p * Math.PI) * .45; arrow.rotation.z = -Math.PI / 2 + (.5 - p) * 1.4; },
+      () => B3.sc.remove(arrow));
+  });
+  // ドラゴンの急降下とブレス
+  if (dra) {
+    dra.userData.busy = true;
+    const h = dra.userData.home, dive = new THREE.Vector3(-.2, .85, 0), col = new THREE.Color(ELEMENTS[B3.d.element].color);
+    tween(100, 320, p => dra.position.lerpVectors(h, dive, ease(p)));
+    tween(300, 10, () => burst(dive.clone().add(new THREE.Vector3(.45, .05, 0)), monPos, col, 26, .35, 300, .05));
+    tween(620, 380, p => dra.position.lerpVectors(dive, h, ease(p)), () => dra.userData.busy = false);
+  }
+  // 命中
+  tween(560, 10, () => {
+    flash(mon, 0xff3b2f);
+    popText(monPos.clone().add(new THREE.Vector3(0, .5, 0)), `-${num(l.pd)}`, "hit");
+    burst(monPos, null, 0xfff1c0, 10, 1.6, 400, .03);
+    onHit();
+  });
+  tween(560, 260, p => { mon.userData.busy = true; mon.position.x = mon.userData.home.x + Math.sin(p * Math.PI * 6) * .06 * (1 - p); }, () => mon.userData.busy = false);
+
+  let dur = 1250;
+  if (l.mhp <= 0) {
+    // 撃破
+    mon.userData.dead = true;
+    const s0 = mon.scale.clone();
+    tween(820, 700, p => { mon.rotation.z = -p * Math.PI / 2; mon.position.y = -p * .1; mon.scale.copy(s0).multiplyScalar(1 - p * .7); });
+    tween(1300, 10, () => { B3.sc.remove(mon); burst(monPos, null, 0xe3b04b, 40, 3, 900, .035); });
+    dur = 2100;
+  } else if (l.md) {
+    // 魔物の反撃
+    tween(820, 380, p => { mon.userData.busy = true; mon.position.x = mon.userData.home.x - Math.sin(p * Math.PI) * .75; }, () => mon.userData.busy = false);
+    tween(1000, 10, () => {
+      const front = new THREE.Vector3(-.35, .4, 0);
+      popText(front.clone().add(new THREE.Vector3(0, .35, 0)), `-${num(l.md)}`, "hurt");
+      // 倒れた兵士を表示に反映
+      for (const k in TROOPS) {
+        B3.alive[k] -= l.kill[k];
+        const showAlive = B3.sent[k] ? Math.ceil(B3.alive[k] / B3.sent[k] * Math.min(UNIT_SHOW, B3.sent[k])) : 0;
+        const list = B3.units.filter(u => u.userData.k === k && u.userData.alive);
+        list.slice(showAlive).forEach(u => { u.userData.alive = false;
+          tween(0, 450, p => { u.rotation.z = p * Math.PI / 2; u.position.y = -p * .04; }, () => setTimeout(() => B3.sc?.remove(u), 400)); });
+      }
+      const lost = Object.entries(l.kill).filter(([, n]) => n).map(([k, n]) => `${TROOPS[k].name}-${n}`).join(" ");
+      if (lost) popText(front.clone().add(new THREE.Vector3(-.4, .05, 0)), lost, "loss");
+      if (dra) flash(dra, 0x662211);
+    });
+    dur = 1550;
+  }
+  if (last && !win) {
+    // 撤退
+    tween(dur, 600, p => units.forEach(u => { if (u.userData.alive) { u.rotation.y = Math.PI; u.position.x = u.userData.home.x - p * .8; } }));
+    if (dra) tween(dur, 600, p => dra.position.x = dra.userData.home.x - p * 1.2);
+    dur += 700;
+  }
+  if (last && win) {
+    tween(dur - 200, 10, () => burst(new THREE.Vector3(-.6, .2, 0), null, 0xe3b04b, 30, 2.4, 1000, .03));
+    living.forEach(u => tween(dur - 200 + Math.random() * 200, 500, p => u.position.y = Math.abs(Math.sin(p * Math.PI * 2)) * .12));
+  }
+  return dur;
+}
+
 document.getElementById("battle").addEventListener("click", e => {
   const b = e.target.closest("[data-b]"); if (!b) { if (e.target.id === "battle" && battle?.phase !== "fight") { battle = null; renderBattle(); } return; }
   if (b.dataset.b === "close") { battle = null; renderBattle(); }
