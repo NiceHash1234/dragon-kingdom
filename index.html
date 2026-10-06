@@ -80,6 +80,49 @@ h2{font-family:var(--f-display);font-weight:400;font-size:1.15rem;margin:0;text-
   background:var(--dusk-2);border:1px solid var(--line);padding:10px 16px;border-radius:10px;font-size:.85rem;max-width:calc(100% - 32px)}
 .toast.err{border-color:var(--danger);color:var(--danger)}
 
+
+.tabs button{padding:12px 4px;font-size:.82rem}
+.monster{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:10px 12px;border-radius:10px;border:1px solid var(--danger);background:color-mix(in srgb,var(--danger) 10%,var(--dusk))}
+.monster small{display:block;color:var(--muted);font-size:.72rem}
+.kingdom{display:flex;gap:12px;align-items:center;justify-content:space-between}
+.kingdom > div:first-child{flex:1;min-width:0}
+.xp{height:6px;border-radius:999px;background:var(--dusk-2);overflow:hidden;margin:6px 0}
+.xp i{display:block;height:100%;background:var(--gold)}
+.coins{text-align:right}.coins b{display:block;font-family:var(--f-mono);font-size:1.3rem;color:var(--gold)}.coins span{font-size:.7rem;color:var(--muted)}
+h2 small{font-family:var(--f-mono);font-size:.8rem;color:var(--muted)}
+.troops,.quests{display:grid;gap:8px}
+.troop,.quest{display:flex;gap:10px;align-items:center;justify-content:space-between;background:var(--dusk-2);border-radius:10px;padding:8px 10px}
+.troop small,.quest small{display:block;color:var(--muted);font-size:.72rem}
+.troop .row{flex:none;flex-wrap:nowrap}.troop .row button{padding:6px 10px}
+.quest.got{opacity:.6}
+.tablewrap{overflow-x:auto}
+table.rank{width:100%;border-collapse:collapse;font-size:.82rem;font-variant-numeric:tabular-nums}
+.rank th{color:var(--muted);font-weight:400;text-align:left;padding:6px 4px;border-bottom:1px solid var(--line)}
+.rank td{padding:7px 4px;border-bottom:1px solid var(--line)}
+.rank tr.me td{color:var(--gold)}
+.modal{position:fixed;inset:0;z-index:20;background:rgba(8,10,20,.6);display:grid;place-items:center;padding:16px}
+.b-card{width:min(440px,100%);max-height:calc(100% - 32px);overflow:auto;background:var(--dusk);border:1px solid var(--line);border-radius:14px;padding:16px;display:grid;gap:12px;box-shadow:0 20px 50px rgba(0,0,0,.5)}
+.b-head{display:flex;gap:10px;align-items:flex-start;justify-content:space-between}
+.close{border:0;background:none;font-size:1.4rem;line-height:1;padding:2px 8px;color:var(--muted)}
+.label{margin:0;font-size:.75rem;color:var(--muted);letter-spacing:.06em}
+.picks{display:grid;gap:6px}
+.pick{text-align:left;display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.pick small{flex-basis:100%;color:var(--muted);font-size:.72rem}
+.pick.on{border-color:var(--gold);background:color-mix(in srgb,var(--gold) 14%,var(--dusk-2))}
+.slider{display:grid;grid-template-columns:5.5em 1fr 4.5em;gap:8px;align-items:center;font-size:.82rem}
+.slider input{width:100%;accent-color:var(--gold)}
+.slider output{font-family:var(--f-mono);font-size:.78rem;text-align:right}
+.rate{display:flex;justify-content:space-between;align-items:baseline}
+.rate b{font-family:var(--f-mono);font-size:1.4rem}
+.good{color:var(--ok)}.bad{color:var(--danger)}
+b.good{font-size:.7rem}
+.hpbar{position:relative;height:22px;border-radius:6px;background:var(--dusk-2);overflow:hidden}
+.hpbar i{position:absolute;inset:0 auto 0 0;background:var(--danger);transition:width .4s}
+.hpbar span{position:relative;display:block;text-align:center;font-family:var(--f-mono);font-size:.75rem;line-height:22px}
+.log{margin:0;padding:0;list-style:none;display:grid;gap:4px;font-size:.8rem;color:var(--muted)}
+.log b{color:var(--ink);font-weight:500}
+.result{border-radius:10px;padding:10px 12px}.result h2{font-size:1.4rem}.result p{margin:4px 0 0;font-size:.85rem}
+.result.win{background:color-mix(in srgb,var(--ok) 16%,var(--dusk))}.result.lose{background:color-mix(in srgb,var(--danger) 14%,var(--dusk))}
 @media (max-width:720px){
   .panel{left:0;right:0;top:auto;bottom:0;width:auto;max-height:50%;border-radius:16px 16px 0 0;padding-bottom:env(safe-area-inset-bottom,0px)}
   .toast{bottom:calc(50% + 12px)}
@@ -98,8 +141,10 @@ h2{font-family:var(--f-display);font-weight:400;font-size:1.15rem;margin:0;text-
 
 <aside class="panel">
   <div class="tabs" role="tablist">
-    <button id="tab-land" role="tab" aria-selected="true">土地</button>
-    <button id="tab-dragon" role="tab" aria-selected="false">ドラゴン</button>
+    <button id="tab-land" role="tab" data-tab="land" aria-selected="true">土地</button>
+    <button id="tab-dragon" role="tab" data-tab="dragon" aria-selected="false">ドラゴン</button>
+    <button id="tab-quest" role="tab" data-tab="quest" aria-selected="false">冒険</button>
+    <button id="tab-rank" role="tab" data-tab="rank" aria-selected="false">ランキング</button>
   </div>
   <div class="sec">
     <div class="res" id="res"></div>
@@ -109,7 +154,11 @@ h2{font-family:var(--f-display);font-weight:400;font-size:1.15rem;margin:0;text-
   </div>
   <div id="view-land" class="sec"></div>
   <div id="view-dragon" class="sec" hidden></div>
+  <div id="view-quest" class="sec" hidden></div>
+  <div id="view-rank" class="sec" hidden></div>
 </aside>
+
+<div id="battle" class="modal" hidden><div class="b-card" role="dialog" aria-modal="true" aria-label="討伐"></div></div>
 
 <div id="toast" class="toast" hidden></div>
 
@@ -374,10 +423,12 @@ function render() {
   document.getElementById("c-castle").textContent = lands.filter(id => state.levels[id]).length;
   document.getElementById("c-dragon").textContent = myDragons.length;
   document.getElementById("speed").textContent = state.backend?.speed ? `デモでは時間が${state.backend.speed}倍速で進みます（1分＝1時間）。` : "";
-  document.getElementById("tab-land").setAttribute("aria-selected", state.tab === "land");
-  document.getElementById("tab-dragon").setAttribute("aria-selected", state.tab === "dragon");
-  document.getElementById("view-land").hidden = state.tab !== "land";
-  document.getElementById("view-dragon").hidden = state.tab !== "dragon";
+  loadGame();
+  ["land", "dragon", "quest", "rank"].forEach(t => {
+    document.getElementById("tab-" + t).setAttribute("aria-selected", state.tab === t);
+    document.getElementById("view-" + t).hidden = state.tab !== t;
+  });
+  renderAdventure(); renderRank();
   const unit = state.backend?.kind === "chain" ? CONFIG.CURRENCY : "POL（デモ）";
 
   const L = document.getElementById("view-land"), s = state.selected;
@@ -398,7 +449,12 @@ function render() {
           : `<p class="hint">城は最大レベルです。</p>`;
       actions = castleBtn + `<button data-act="hatch" ${state.balances[0] >= HATCH_FOOD ? "" : "disabled"}>ドラゴンを孵化<span class="cost">${state.dragonPrice} ${unit}・食料${HATCH_FOOD}</span></button>`;
     }
-    L.innerHTML = `
+    const mon = monsterAt(s);
+    const monCard = mon ? (() => { const T = MONSTER_TYPES[mon.type], st = monsterStats(mon.lvl);
+      return `<div class="monster"><div><b>${ELEMENTS[mon.el].name}の${T.name}</b> <small>Lv ${mon.lvl}</small>
+        <small>HP ${num(st.hp)}・攻撃 ${st.atk}・弱点：${TROOPS[T.weak].name}／${ELEMENTS[(mon.el + 3) % 4].name}属性</small></div>
+        <button class="primary" data-act="fight">討伐する</button></div>`; })() : "";
+    L.innerHTML = monCard + `
       <h2>区画 (${x}, ${y})</h2>
       <dl class="kv">
         <dt>地形</dt><dd>${TERRAIN[TER[s]].name}（${r}を生産）</dd>
@@ -465,6 +521,331 @@ function dragonCard(d) {
   </div>`;
 }
 
+/* ===================== 冒険（ブラウザ内のゲーム） =====================
+ * 討伐・兵士・クエストの進行はこのブラウザに保存されます（ウォレットごと）。
+ * ドラゴンのパワー・レベル・属性と城のレベルは、ブロックチェーン上のNFTをそのまま使います。 */
+const TROOPS = {
+  inf: { name: "歩兵", atk: 3, hp: 10, cost: 2, sec: 1.5 },
+  arc: { name: "弓兵", atk: 5, hp: 6,  cost: 3, sec: 2 },
+  cav: { name: "騎兵", atk: 7, hp: 12, cost: 5, sec: 3 },
+};
+const MONSTER_TYPES = [
+  { name: "ゴブリン",   color: 0x8fbf5a, weak: "arc", scale: .8 },
+  { name: "オーガ",     color: 0xb06a4a, weak: "cav", scale: 1.1 },
+  { name: "大蜘蛛",     color: 0x5a4a72, weak: "inf", scale: 1 },
+  { name: "ゴーレム",   color: 0x9a968a, weak: "cav", scale: 1.15 },
+  { name: "ワイバーン", color: 0x4f9a96, weak: "arc", scale: 1 },
+];
+const QUESTS = [
+  { id: "kill3",   text: "魔物を3体倒す",          key: "kill",    goal: 3,  reward: 100 },
+  { id: "strong",  text: "Lv5以上の魔物を倒す",    key: "strong",  goal: 1,  reward: 150 },
+  { id: "train20", text: "兵士を20人訓練する",     key: "train",   goal: 20, reward: 80 },
+  { id: "harvest", text: "土地から資材を収穫する", key: "harvest", goal: 1,  reward: 50 },
+  { id: "chest",   text: "宝箱を見つける",         key: "chest",   goal: 1,  reward: 120 },
+];
+const STAMINA_MAX = 3, STAMINA_SEC = 15 * 60, MONSTER_COUNT = 10, MAX_ROUNDS = 8, RESPAWN_SEC = 20;
+const beats = (a, b) => (a + 1) % 4 === b;                 // 炎>氷>雷>闇>炎
+const kLevelOf = exp => { let n = 1; while (exp >= 30 * n * (n + 1)) n++; return n; };
+const monsterStats = L => ({ hp: Math.round(150 * Math.pow(L, 1.4)), atk: 15 * L });
+const jstDay = () => new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10);
+const speedUp = () => state.backend?.speed || 1;
+
+let G = null, gameKey = null, lastSpawn = 0, battle = null;
+
+function newGame() {
+  return { coins: 200, exp: 0, kills: 0, troops: { inf: 30, arc: 0, cav: 0 }, queue: [], stamina: {},
+           quest: { day: jstDay(), prog: {}, claimed: {} }, monsters: [], seq: 0 };
+}
+function loadGame() {
+  if (!state.backend || !state.account || !state.owners.length) return;
+  const key = `dk-game-${state.backend.kind}-${state.account.toLowerCase()}`;
+  if (key === gameKey) return;
+  gameKey = key;
+  try { G = JSON.parse(localStorage.getItem(key)); } catch (e) { G = null; }
+  if (!G || !G.troops) G = newGame();
+  G.monsters = (G.monsters || []).filter(m => state.owners[m.tile] === ZERO);
+  spawnMonsters(true); drawMonsters();
+}
+function saveGame() { try { localStorage.setItem(gameKey, JSON.stringify(G)); } catch (e) {} }
+function quest() {
+  if (G.quest.day !== jstDay()) G.quest = { day: jstDay(), prog: {}, claimed: {} };
+  return G.quest;
+}
+function questProg(key, n) { if (!G) return; const q = quest(); q.prog[key] = (q.prog[key] || 0) + n; saveGame(); }
+
+const kLevel = () => kLevelOf(G.exp);
+const myCastleTotal = () => myLands().reduce((a, id) => a + (state.levels[id] || 0), 0);
+const troopCap = () => 60 + 20 * kLevel() + 15 * myCastleTotal();
+const troopCount = () => Object.values(G.troops).reduce((a, b) => a + b, 0) + G.queue.reduce((a, q) => a + q.n, 0);
+
+/* ---- スタミナ（ドラゴン1頭あたり3回、15分で1回復） ---- */
+function stamina(id) {
+  const per = STAMINA_SEC * 1000 / speedUp(), s = G.stamina[id];
+  if (!s) return { v: STAMINA_MAX, next: 0 };
+  const el = Date.now() - s.t, v = Math.min(STAMINA_MAX, s.v + Math.floor(el / per));
+  return { v, next: v >= STAMINA_MAX ? 0 : Math.ceil((per - el % per) / 1000) };
+}
+function useStamina(id) {
+  const per = STAMINA_SEC * 1000 / speedUp(), s = G.stamina[id], cur = stamina(id).v;
+  const t = (!s || cur >= STAMINA_MAX) ? Date.now() : s.t + Math.floor((Date.now() - s.t) / per) * per;
+  G.stamina[id] = { v: cur - 1, t };
+}
+
+/* ---- 魔物の出現 ---- */
+function spawnMonsters(fill) {
+  const free = [];
+  state.owners.forEach((o, i) => { if (o === ZERO && !G.monsters.some(m => m.tile === i)) free.push(i); });
+  const maxL = Math.min(10, kLevel() + 2);
+  let added = false;
+  while (G.monsters.length < MONSTER_COUNT && free.length && (fill || Date.now() - lastSpawn > RESPAWN_SEC * 1000)) {
+    const tile = free.splice(Math.floor(Math.random() * free.length), 1)[0];
+    const lvl = 1 + Math.floor(Math.pow(Math.random(), 1.3) * maxL);
+    G.monsters.push({ id: ++G.seq, tile, type: Math.floor(Math.random() * MONSTER_TYPES.length), el: Math.floor(Math.random() * 4), lvl });
+    lastSpawn = Date.now(); added = true;
+    if (!fill) break;
+  }
+  if (added) saveGame();
+  return added;
+}
+const monsterGroup = new THREE.Group(); scene.add(monsterGroup);
+function makeMonster(m) {
+  const T = MONSTER_TYPES[m.type], g = new THREE.Group(), mat = new THREE.MeshLambertMaterial({ color: T.color });
+  const white = new THREE.MeshBasicMaterial({ color: 0xffffff }), dark = new THREE.MeshBasicMaterial({ color: 0x111111 });
+  let body;
+  if (m.type === 3) { body = new THREE.Mesh(new THREE.BoxGeometry(.3, .32, .24), mat); body.position.y = .2; }
+  else if (m.type === 2) { body = new THREE.Mesh(new THREE.SphereGeometry(.16, 10, 8), mat); body.scale.set(1.2, .7, 1.2); body.position.y = .14;
+    for (let i = 0; i < 4; i++) { const leg = new THREE.Mesh(new THREE.CylinderGeometry(.012, .012, .3, 4), mat); const a = i * Math.PI / 2 + Math.PI / 4; leg.position.set(Math.cos(a) * .16, .1, Math.sin(a) * .16); leg.rotation.z = Math.cos(a) * .8; leg.rotation.x = -Math.sin(a) * .8; g.add(leg); } }
+  else { body = new THREE.Mesh(new THREE.SphereGeometry(.15, 10, 8), mat); body.scale.y = 1.15; body.position.y = .18; }
+  g.add(body);
+  [-1, 1].forEach(s => {
+    const e = new THREE.Mesh(new THREE.SphereGeometry(.035, 6, 6), white); e.position.set(.06 * s, body.position.y + .05, .13); g.add(e);
+    const p = new THREE.Mesh(new THREE.SphereGeometry(.018, 6, 6), dark); p.position.set(.06 * s, body.position.y + .05, .16); g.add(p);
+  });
+  if (m.type === 1) [-1, 1].forEach(s => { const h = new THREE.Mesh(new THREE.ConeGeometry(.03, .1, 5), white); h.position.set(.08 * s, .36, 0); g.add(h); });
+  if (m.type === 4) [-1, 1].forEach(s => { const w = new THREE.Mesh(new THREE.ConeGeometry(.1, .3, 3), mat); w.rotation.z = s * Math.PI / 2; w.position.set(.2 * s, .24, 0); g.add(w); g.userData.wing = g.userData.wing || []; g.userData.wing.push({ w, s }); });
+  const aura = new THREE.Mesh(new THREE.RingGeometry(.22, .27, 24), new THREE.MeshBasicMaterial({ color: new THREE.Color(ELEMENTS[m.el].color), side: THREE.DoubleSide, transparent: true, opacity: .8 }));
+  aura.rotation.x = -Math.PI / 2; aura.position.y = .01; g.add(aura);
+  g.scale.setScalar(T.scale * (.85 + m.lvl * .05));
+  const p = tilePos(m.tile); g.position.set(p.x + .1, TERRAIN[TER[m.tile]].h, p.z + .1);
+  g.userData.m = m; g.userData.baseY = g.position.y; g.userData.phase = m.id;
+  g.traverse(o => o.userData.tile = m.tile);
+  return g;
+}
+function drawMonsters() { monsterGroup.clear(); if (G) G.monsters.forEach(m => monsterGroup.add(makeMonster(m))); }
+function animateMonsters(t) {
+  monsterGroup.children.forEach(g => {
+    g.position.y = g.userData.baseY + Math.abs(Math.sin(t * 2.4 + g.userData.phase)) * .06;
+    g.rotation.y = Math.sin(t * .8 + g.userData.phase) * .6;
+    (g.userData.wing || []).forEach(({ w, s }) => w.rotation.x = Math.sin(t * 9 + g.userData.phase) * .5 * s);
+  });
+}
+const monsterAt = tile => G?.monsters.find(m => m.tile === tile);
+
+/* ---- 戦闘 ---- */
+function dragonAtk(d, m) {
+  if (!d) return 0;
+  let a = d.power * (1 + .15 * (d.level - 1)) * .6;
+  if (beats(d.element, m.el)) a *= 1.5; else if (beats(m.el, d.element)) a *= .75;
+  return a;
+}
+function simulate(m, d, sent, rnd = Math.random) {
+  const st = monsterStats(m.lvl), alive = { ...sent }, lost = { inf: 0, arc: 0, cav: 0 }, log = [];
+  const weak = MONSTER_TYPES[m.type].weak, dA = dragonAtk(d, m);
+  let mhp = st.hp;
+  for (let r = 1; r <= MAX_ROUNDS; r++) {
+    let atk = dA;
+    for (const k in TROOPS) atk += alive[k] * TROOPS[k].atk * (k === weak ? 1.5 : 1);
+    const pd = Math.round(atk * (.85 + rnd() * .3));
+    mhp = Math.max(0, mhp - pd);
+    const kill = { inf: 0, arc: 0, cav: 0 }; let md = 0;
+    if (mhp > 0) {
+      md = Math.round(st.atk * (.85 + rnd() * .3));
+      const toTroops = d ? md * .5 : md;   // ドラゴンが半分を受け止める
+      const total = Object.keys(TROOPS).reduce((a, k) => a + alive[k] * TROOPS[k].hp, 0);
+      if (total > 0) for (const k in TROOPS) {
+        const share = alive[k] * TROOPS[k].hp / total;
+        const n = Math.min(alive[k], Math.floor(toTroops * share / TROOPS[k].hp + rnd()));
+        alive[k] -= n; lost[k] += n; kill[k] = n;
+      }
+    }
+    log.push({ r, pd, md, mhp, kill });
+    if (mhp <= 0) break;
+    if (!d && Object.values(alive).every(v => v === 0)) break;
+  }
+  return { win: mhp <= 0, log, lost, hp0: st.hp };
+}
+function winRate(m, d, sent) { let w = 0; for (let i = 0; i < 300; i++) if (simulate(m, d, sent).win) w++; return Math.round(w / 3); }
+
+function openBattle(m) {
+  const mine = state.dragons.filter(d => isMine(d.owner));
+  const ready = mine.filter(d => stamina(d.id).v > 0).sort((a, b) => dragonAtk(b, m) - dragonAtk(a, m));
+  battle = { m, dragonId: ready[0]?.id ?? -1, sent: { ...G.troops }, phase: "setup" };
+  renderBattle();
+}
+function renderBattle() {
+  const box = document.getElementById("battle");
+  if (!battle) { box.hidden = true; return; }
+  box.hidden = false;
+  const { m } = battle, T = MONSTER_TYPES[m.type], st = monsterStats(m.lvl), E = ELEMENTS[m.el];
+  const d = state.dragons[battle.dragonId];
+  const head = `<div class="b-head"><div><h2>${E.name}の${T.name} <small>Lv ${m.lvl}</small></h2>
+    <p class="hint">HP ${num(st.hp)} · 攻撃 ${st.atk} · 弱点：${TROOPS[T.weak].name}・${ELEMENTS[(m.el + 3) % 4].name}属性のドラゴン</p></div>
+    <button class="close" data-b="close" aria-label="閉じる">×</button></div>`;
+  let body = "";
+  if (battle.phase === "setup") {
+    const mine = state.dragons.filter(x => isMine(x.owner));
+    const opts = mine.map(x => { const s = stamina(x.id), e = ELEMENTS[x.element];
+      const tag = beats(x.element, m.el) ? "有利" : beats(m.el, x.element) ? "不利" : "";
+      return `<button class="pick ${x.id === battle.dragonId ? "on" : ""}" data-b="dragon" data-id="${x.id}" ${s.v ? "" : "disabled"}>
+        <i class="dot" style="background:${e.color}"></i>${e.name} #${x.id} Lv${x.level}
+        <small>攻撃 ${Math.round(dragonAtk(x, m))}${tag ? `・${tag}` : ""}・スタミナ ${s.v}/${STAMINA_MAX}</small></button>`; }).join("");
+    const sliders = Object.entries(TROOPS).map(([k, t]) => `
+      <label class="slider" for="s-${k}"><span>${t.name}${k === T.weak ? " <b class=\"good\">弱点</b>" : ""}</span>
+        <input id="s-${k}" type="range" min="0" max="${G.troops[k]}" value="${battle.sent[k]}" data-k="${k}">
+        <output>${battle.sent[k]} / ${G.troops[k]}</output></label>`).join("");
+    const any = (d ? 1 : 0) + Object.values(battle.sent).reduce((a, b) => a + b, 0);
+    const rate = any ? winRate(m, d, battle.sent) : 0;
+    body = `<p class="label">出撃するドラゴン</p><div class="picks">${opts}
+        <button class="pick ${battle.dragonId === -1 ? "on" : ""}" data-b="dragon" data-id="-1">ドラゴンなし<small>兵士だけで戦う</small></button></div>
+      <p class="label">兵士</p>${sliders}
+      <div class="rate"><span>勝率の目安</span><b class="${rate >= 70 ? "good" : rate >= 40 ? "" : "bad"}">${rate}%</b></div>
+      <button class="primary" data-b="go" ${any ? "" : "disabled"}>出撃する</button>`;
+  } else {
+    const r = battle.result, shown = r.log.slice(0, battle.step);
+    const last = shown[shown.length - 1], hp = last ? last.mhp : r.hp0;
+    body = `<div class="hpbar"><i style="width:${Math.max(0, hp / r.hp0 * 100)}%"></i><span>${num(hp)} / ${num(r.hp0)}</span></div>
+      <ol class="log">${shown.map(l => `<li><b>${l.r}回戦</b> 与えたダメージ ${num(l.pd)}${l.md ? `・受けたダメージ ${num(l.md)}` : ""}${Object.entries(l.kill).filter(([, n]) => n).map(([k, n]) => `・${TROOPS[k].name}-${n}`).join("")}</li>`).join("")}</ol>`;
+    if (battle.phase === "done") {
+      const rw = battle.reward;
+      body += r.win
+        ? `<div class="result win"><h2>勝利！</h2><p>コイン +${rw.coins}・経験値 +${rw.exp}${rw.chest ? `・宝箱からコイン +${rw.chest}` : ""}</p>${rw.levelUp ? `<p>王国がLv${rw.levelUp}になりました</p>` : ""}</div>`
+        : `<div class="result lose"><h2>撤退</h2><p>${MAX_ROUNDS}回戦で倒しきれませんでした。兵士を増やすか、有利な属性のドラゴンで挑みましょう。</p></div>`;
+      body += `<p class="hint">失った兵士：${Object.entries(r.lost).map(([k, n]) => `${TROOPS[k].name}${n}`).join("・")}</p><button class="primary" data-b="close">閉じる</button>`;
+    }
+  }
+  box.querySelector(".b-card").innerHTML = head + body;
+}
+function startBattle() {
+  const { m } = battle, d = state.dragons[battle.dragonId];
+  if (d) useStamina(d.id);
+  const r = simulate(m, d, battle.sent);
+  for (const k in TROOPS) G.troops[k] -= r.lost[k];
+  const rw = {};
+  if (r.win) {
+    const before = kLevel();
+    rw.coins = 15 * m.lvl + Math.floor(Math.random() * 10 * m.lvl); rw.exp = 12 * m.lvl;
+    if (m.lvl >= 4 && Math.random() < .3) { rw.chest = 40 * m.lvl; questProg("chest", 1); }
+    G.coins += rw.coins + (rw.chest || 0); G.exp += rw.exp; G.kills++;
+    questProg("kill", 1); if (m.lvl >= 5) questProg("strong", 1);
+    G.monsters = G.monsters.filter(x => x.id !== m.id); lastSpawn = Date.now();
+    if (kLevel() > before) rw.levelUp = kLevel();
+  }
+  saveGame();
+  Object.assign(battle, { phase: "fight", result: r, reward: rw, step: 0 });
+  const stepper = () => {
+    if (!battle || battle.phase !== "fight") return;
+    battle.step++;
+    if (battle.step >= r.log.length) { battle.phase = "done"; drawMonsters(); render(); }
+    renderBattle();
+    if (battle.phase === "fight") setTimeout(stepper, still ? 50 : 650);
+  };
+  renderBattle(); setTimeout(stepper, 300);
+}
+document.getElementById("battle").addEventListener("click", e => {
+  const b = e.target.closest("[data-b]"); if (!b) { if (e.target.id === "battle" && battle?.phase !== "fight") { battle = null; renderBattle(); } return; }
+  if (b.dataset.b === "close") { battle = null; renderBattle(); }
+  if (b.dataset.b === "dragon") { battle.dragonId = Number(b.dataset.id); renderBattle(); }
+  if (b.dataset.b === "go") startBattle();
+});
+document.getElementById("battle").addEventListener("input", e => {
+  const k = e.target.dataset.k; if (!k) return;
+  battle.sent[k] = Number(e.target.value);
+  e.target.nextElementSibling.textContent = `${battle.sent[k]} / ${G.troops[k]}`;
+  clearTimeout(battle.t); battle.t = setTimeout(renderBattle, 250);
+});
+addEventListener("keydown", e => { if (e.key === "Escape" && battle && battle.phase !== "fight") { battle = null; renderBattle(); } });
+
+/* ---- 兵士の訓練 ---- */
+function trainTroops(k, n) {
+  const t = TROOPS[k], room = troopCap() - troopCount();
+  n = Math.min(n, room, Math.floor(G.coins / t.cost));
+  if (n <= 0) return toast(room <= 0 ? "兵舎がいっぱいです。王国レベルや城のレベルを上げると増えます。" : "コインが足りません。魔物を倒すかクエストで集めましょう。", true);
+  const start = Math.max(Date.now(), G.queue.length ? G.queue[G.queue.length - 1].doneAt : 0);
+  G.coins -= n * t.cost;
+  G.queue.push({ k, n, doneAt: start + n * t.sec * 1000 / speedUp() });
+  saveGame(); render(); toast(`${t.name}${n}人の訓練を始めました`);
+}
+function gameTick() {
+  if (!G) return;
+  let changed = false;
+  while (G.queue.length && G.queue[0].doneAt <= Date.now()) {
+    const q = G.queue.shift(); G.troops[q.k] += q.n; questProg("train", q.n); changed = true;
+    toast(`${TROOPS[q.k].name}${q.n}人の訓練が終わりました`);
+  }
+  if (spawnMonsters(false)) { drawMonsters(); changed = true; }
+  if (changed) { saveGame(); if (!battle) render(); }
+  const qs = document.getElementById("queue-status");
+  if (qs) qs.textContent = queueText();
+  document.querySelectorAll("[data-st]").forEach(el => { const s = stamina(+el.dataset.st); el.textContent = `${s.v}/${STAMINA_MAX}${s.next ? `（あと${fmt(s.next)}で回復）` : ""}`; });
+}
+function queueText() {
+  if (!G.queue.length) return "訓練中の兵士はいません";
+  const q = G.queue[0], left = Math.max(0, Math.ceil((q.doneAt - Date.now()) / 1000));
+  return `${TROOPS[q.k].name}${q.n}人を訓練中・あと${fmt(left)}${G.queue.length > 1 ? `（ほか${G.queue.length - 1}件待ち）` : ""}`;
+}
+
+/* ---- 冒険タブ ---- */
+function renderAdventure() {
+  const V = document.getElementById("view-quest");
+  if (!G) { V.innerHTML = `<p class="hint">読み込み中…</p>`; return; }
+  const lv = kLevel(), lo = 30 * (lv - 1) * lv, hi = 30 * lv * (lv + 1), q = quest();
+  const mine = state.dragons.filter(d => isMine(d.owner));
+  V.innerHTML = `
+    <div class="kingdom">
+      <div><h2>王国 Lv ${lv}</h2><div class="xp"><i style="width:${(G.exp - lo) / (hi - lo) * 100}%"></i></div>
+        <p class="hint">経験値 ${num(G.exp)} / ${num(hi)}・討伐数 ${num(G.kills)}</p></div>
+      <div class="coins"><b>${num(G.coins)}</b><span>コイン</span></div>
+    </div>
+    <p class="hint">マップ上の魔物をタップすると討伐に出られます。今いる魔物：${G.monsters.length}体</p>
+
+    <h2>兵士 <small>${troopCount()} / ${troopCap()}</small></h2>
+    <div class="troops">${Object.entries(TROOPS).map(([k, t]) => `
+      <div class="troop"><div><b>${t.name}</b> <span class="mono">${G.troops[k]}</span>
+        <small>攻撃${t.atk}・HP${t.hp}・1人${t.cost}コイン</small></div>
+        <div class="row"><button data-act="troop" data-k="${k}" data-n="5">+5</button><button data-act="troop" data-k="${k}" data-n="20">+20</button></div></div>`).join("")}
+    </div>
+    <p class="hint" id="queue-status">${queueText()}</p>
+    <p class="hint">兵舎の上限は、王国レベルと城のレベルの合計で増えます。</p>
+
+    <h2>ドラゴンのスタミナ</h2>
+    ${mine.length ? `<dl class="kv">${mine.map(d => `<dt>${ELEMENTS[d.element].name} #${d.id} Lv${d.level}</dt><dd data-st="${d.id}"></dd>`).join("")}</dl>`
+      : `<p class="hint">ドラゴンがいなくても兵士だけで戦えますが、ドラゴンがいるとずっと強くなります。</p>`}
+
+    <h2>今日のクエスト</h2>
+    <div class="quests">${QUESTS.map(Q => { const p = Math.min(Q.goal, q.prog[Q.key] || 0), done = p >= Q.goal, got = q.claimed[Q.id];
+      return `<div class="quest ${got ? "got" : ""}"><div><b>${Q.text}</b><small>${p} / ${Q.goal}・報酬 ${Q.reward}コイン</small></div>
+        <button data-act="claim" data-q="${Q.id}" ${done && !got ? "class=\"primary\"" : "disabled"}>${got ? "受取済" : "受け取る"}</button></div>`; }).join("")}
+    </div>
+    <p class="hint">クエストは毎日0時（日本時間）に新しくなります。冒険の記録はこのブラウザに保存され、NFTには記録されません。</p>`;
+}
+
+/* ---- ランキング（ブロックチェーン上のデータで全プレイヤーを集計） ---- */
+function renderRank() {
+  const V = document.getElementById("view-rank"), score = {};
+  const add = (a, k, v) => { if (a === ZERO) return; const key = a.toLowerCase(); score[key] = score[key] || { addr: a, lands: 0, castle: 0, dragon: 0 }; score[key][k] += v; };
+  state.owners.forEach((o, i) => { add(o, "lands", 1); add(o, "castle", state.levels[i] || 0); });
+  state.dragons.forEach(d => add(d.owner, "dragon", d.power * d.level));
+  const rows = Object.values(score).map(s => ({ ...s, total: s.lands * 10 + s.castle * 30 + Math.round(s.dragon / 10) })).sort((a, b) => b.total - a.total);
+  const meIdx = rows.findIndex(r => isMine(r.addr));
+  const line = (r, i) => `<tr class="${isMine(r.addr) ? "me" : ""}"><td>${i + 1}</td><td class="mono">${isMine(r.addr) ? "あなた" : short(r.addr)}</td><td>${r.lands}</td><td>${r.castle}</td><td><b>${num(r.total)}</b></td></tr>`;
+  V.innerHTML = `<h2>王国の戦力ランキング</h2>
+    <p class="hint">ブロックチェーン上のNFTから全プレイヤーを集計しています。戦力＝土地×10＋城レベル合計×30＋ドラゴン（パワー×レベル）÷10</p>
+    <div class="tablewrap"><table class="rank"><thead><tr><th>順位</th><th>王国</th><th>土地</th><th>城Lv</th><th>戦力</th></tr></thead>
+    <tbody>${rows.slice(0, 10).map(line).join("")}${meIdx >= 10 ? line(rows[meIdx], meIdx) : ""}</tbody></table></div>
+    ${rows.length ? "" : `<p class="hint">まだ誰も土地を持っていません。</p>`}
+    ${G ? `<p class="hint">あなたの討伐数：${num(G.kills)}体（このブラウザの記録）</p>` : ""}`;
+}
+
 /* ===================== 操作 ===================== */
 let toastTimer;
 function toast(msg, err) {
@@ -503,9 +884,13 @@ async function run(fn, done) {
 document.querySelector(".panel").addEventListener("input", e => { if (e.target.id === "partner-id") state.partnerInput = e.target.value; });
 document.querySelector(".panel").addEventListener("click", e => {
   const b = e.target.closest("button"); if (!b) return;
-  if (b.id === "tab-land" || b.id === "tab-dragon") { state.tab = b.id === "tab-land" ? "land" : "dragon"; return render(); }
+  if (b.dataset.tab) { state.tab = b.dataset.tab; return render(); }
   const act = b.dataset.act, id = Number(b.dataset.id), s = state.selected, B = state.backend;
-  if (act === "harvest") run(() => B.harvest(myLands()), "収穫しました");
+  if (act === "harvest") run(async () => { await B.harvest(myLands()); questProg("harvest", 1); }, "収穫しました");
+  if (act === "fight") { const m = monsterAt(s); if (m) openBattle(m); }
+  if (act === "troop") trainTroops(b.dataset.k, Number(b.dataset.n));
+  if (act === "claim") { const Q = QUESTS.find(q => q.id === b.dataset.q), q = quest();
+    if (Q && !q.claimed[Q.id] && (q.prog[Q.key] || 0) >= Q.goal) { q.claimed[Q.id] = true; G.coins += Q.reward; saveGame(); render(); toast(`クエスト達成：${Q.reward}コインを受け取りました`); } }
   if (act === "mint") run(() => B.mintLand(s % SIZE, Math.floor(s / SIZE)), "土地を手に入れました");
   if (act === "build") run(() => B.build(s), "城が完成しました");
   if (act === "upgrade") run(() => B.upgrade(s), `城がLv${state.levels[s] + 1}になりました`);
@@ -530,7 +915,7 @@ document.querySelector(".panel").addEventListener("click", e => {
 document.getElementById("connect").addEventListener("click", async () => {
   try {
     const chain = await makeChain();
-    state.backend = chain; state.account = chain.account;
+    state.backend = chain; state.account = chain.account; gameKey = null; battle = null; renderBattle();
     const m = document.getElementById("mode"); m.textContent = `${CONFIG.CHAIN_NAME} · ${short(chain.account)}`; m.classList.add("live");
     document.getElementById("connect").hidden = true;
     state.selected = null; await refresh(); toast("ウォレットに接続しました");
@@ -549,8 +934,9 @@ renderer.domElement.addEventListener("pointerup", e => {
   const r = renderer.domElement.getBoundingClientRect();
   ptr.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
   ray.setFromCamera(ptr, camera);
-  const hit = ray.intersectObjects(tiles)[0];
-  state.selected = hit ? hit.object.userData.landId : null; state.tab = "land"; render();
+  const mHit = ray.intersectObjects(monsterGroup.children, true)[0];
+  const hit = mHit ? null : ray.intersectObjects(tiles)[0];
+  state.selected = mHit ? mHit.object.userData.tile : hit ? hit.object.userData.landId : null; state.tab = "land"; render();
 });
 
 function resize() { const w = host.clientWidth, h = host.clientHeight; renderer.setSize(w, h); camera.aspect = w / h; camera.updateProjectionMatrix(); }
@@ -566,8 +952,9 @@ renderer.setAnimationLoop(() => {
     g.rotation.y = -a;
     g.userData.wings.forEach(w => w.pivot.rotation.z = w.s * Math.sin(t * 8 + g.userData.phase) * .6);
   });
+  animateMonsters(t);
   controls.update(); renderer.render(scene, camera);
-  if (++tick % 30 === 0) updateLive();
+  if (++tick % 30 === 0) { updateLive(); gameTick(); }
 });
 
 (async () => {
