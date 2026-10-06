@@ -739,8 +739,8 @@ function startBattle() {
   card.innerHTML = battleHead() + `<div class="stage" id="stage"></div>
     <div class="hpbar"><i id="b-hp" style="width:100%"></i><span id="b-hpt">${num(r.hp0)} / ${num(r.hp0)}</span></div>
     <ol class="log" id="b-log"></ol><div id="b-end"></div>`;
-  if (!still) stageStart(document.getElementById("stage"), m, d, battle.sent);
-  else document.getElementById("stage").hidden = true;
+  // 戦闘演出は、OSの「視差効果を減らす」設定がオンでも再生する（揺れと点滅だけ控えめにする）
+  stageStart(document.getElementById("stage"), m, d, battle.sent);
   const me = battle;
   let i = 0;
   const next = () => {
@@ -754,8 +754,7 @@ function startBattle() {
       li.innerHTML = `<b>${l.r}回戦</b> 与えたダメージ ${num(l.pd)}${l.md ? `・受けたダメージ ${num(l.md)}` : ""}${Object.entries(l.kill).filter(([, n]) => n).map(([k, n]) => `・${TROOPS[k].name}-${n}`).join("")}`;
       document.getElementById("b-log").appendChild(li);
     };
-    let dur;
-    if (still) { onHit(); dur = 120; } else dur = stageRound(l, last, r.win, onHit);
+    const dur = stageRound(l, last, r.win, onHit);
     i++;
     setTimeout(last ? finish : next, dur);
   };
@@ -866,6 +865,7 @@ function burst(from, to, color, n, spread, life, size) {
   }
 }
 function flash(obj, color) {
+  if (still) return;
   const mats = []; obj.traverse(o => { if (o.material && o.material.emissive) mats.push(o.material); });
   mats.forEach(mt => mt.emissive.setHex(color));
   setTimeout(() => mats.forEach(mt => mt.emissive.setHex(0)), 160);
@@ -901,7 +901,7 @@ function stageRound(l, last, win, onHit) {
     burst(monPos, null, 0xfff1c0, 10, 1.6, 400, .03);
     onHit();
   });
-  tween(560, 260, p => { mon.userData.busy = true; mon.position.x = mon.userData.home.x + Math.sin(p * Math.PI * 6) * .06 * (1 - p); }, () => mon.userData.busy = false);
+  if (!still) tween(560, 260, p => { mon.userData.busy = true; mon.position.x = mon.userData.home.x + Math.sin(p * Math.PI * 6) * .06 * (1 - p); }, () => mon.userData.busy = false);
 
   let dur = 1250;
   if (l.mhp <= 0) {
