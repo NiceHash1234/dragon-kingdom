@@ -1,0 +1,456 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>ドラゴンキングダム</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Marcellus&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: full-bleed 3D map; one floating ledger panel (right on desktop, bottom sheet on phones) */
+:root{
+  --night:#141a2e;      /* sky / ground */
+  --dusk:#222b48;       /* panel */
+  --dusk-2:#2c375c;     /* raised rows */
+  --line:#3b4772;
+  --ink:#ece6d6;        /* text, parchment tone */
+  --muted:#a9a6b8;
+  --gold:#e3b04b;       /* accent: crown gold */
+  --gold-ink:#2a1f05;
+  --danger:#ef7a6a;
+  --ok:#8fd4a0;
+  --f-display:"Marcellus","Times New Roman",serif;
+  --f-body:"Zen Kaku Gothic New","Hiragino Sans","Noto Sans JP",system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+  color-scheme:dark;
+}
+html,body{height:100%}
+body{background:var(--night);color:var(--ink);font-family:var(--f-body);overflow:hidden}
+#scene{position:fixed;inset:0;touch-action:none}
+#scene canvas{display:block}
+
+.bar{position:fixed;left:0;right:0;top:0;z-index:5;display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  padding:calc(env(safe-area-inset-top,0px) + 10px) 16px 10px;
+  background:linear-gradient(var(--night),transparent)}
+.brand{font-family:var(--f-display);font-size:1.35rem;letter-spacing:.04em;margin-right:auto;white-space:nowrap}
+.brand small{display:block;font-family:var(--f-body);font-size:.68rem;color:var(--muted);letter-spacing:.12em}
+.chip{font-size:.72rem;padding:4px 9px;border-radius:999px;border:1px solid var(--line);color:var(--muted);background:var(--dusk);white-space:nowrap}
+.chip.live{color:var(--ok);border-color:var(--ok)}
+button{font:inherit;cursor:pointer;border-radius:8px;border:1px solid var(--line);background:var(--dusk-2);color:var(--ink);padding:8px 12px;font-size:.85rem}
+button:hover{border-color:var(--gold)}
+button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+button.primary{background:var(--gold);color:var(--gold-ink);border-color:var(--gold);font-weight:700}
+button:disabled{opacity:.45;cursor:not-allowed}
+
+.panel{position:fixed;z-index:6;right:16px;top:80px;width:340px;max-height:calc(100% - 100px);overflow:auto;
+  background:color-mix(in srgb,var(--dusk) 94%,transparent);border:1px solid var(--line);border-radius:14px;
+  box-shadow:0 18px 40px rgba(0,0,0,.35)}
+.tabs{display:flex;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--dusk);z-index:1}
+.tabs button{flex:1;border:0;border-radius:0;background:none;padding:12px;color:var(--muted)}
+.tabs button[aria-selected="true"]{color:var(--ink);box-shadow:inset 0 -2px 0 var(--gold)}
+.sec{padding:14px 16px;display:grid;gap:12px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{background:var(--dusk-2);border-radius:8px;padding:8px 10px}
+.stat b{display:block;font-family:var(--f-mono);font-size:1.05rem;font-variant-numeric:tabular-nums}
+.stat span{font-size:.68rem;color:var(--muted);letter-spacing:.06em}
+h2{font-family:var(--f-display);font-weight:400;font-size:1.15rem;margin:0;text-wrap:balance}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:.85rem;margin:0}
+.kv dt{color:var(--muted)}
+.kv dd{margin:0;text-align:right;font-variant-numeric:tabular-nums;min-width:0;overflow-wrap:anywhere}
+.mono{font-family:var(--f-mono);font-size:.8rem}
+.hint{color:var(--muted);font-size:.82rem;line-height:1.6;margin:0}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.row button{flex:1}
+.dragon{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;align-items:center;background:var(--dusk-2);border-radius:10px;padding:10px 12px}
+.dragon .el{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-size:.75rem;font-weight:700;color:#1a1a22;grid-row:span 2}
+.dragon .name{font-weight:700;font-size:.9rem}
+.dragon .meta{font-size:.75rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.dragon .row{grid-column:1/-1;margin-top:6px}
+.dragon .row button{padding:6px 8px;font-size:.78rem}
+.empty{border:1px dashed var(--line);border-radius:10px;padding:14px;text-align:center}
+
+.toast{position:fixed;z-index:9;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 20px);
+  background:var(--dusk-2);border:1px solid var(--line);padding:10px 16px;border-radius:10px;font-size:.85rem;max-width:calc(100% - 32px)}
+.toast.err{border-color:var(--danger);color:var(--danger)}
+
+@media (max-width:720px){
+  .panel{left:0;right:0;top:auto;bottom:0;width:auto;max-height:46%;border-radius:16px 16px 0 0;
+    padding-bottom:env(safe-area-inset-bottom,0px)}
+  .toast{bottom:calc(46% + 12px)}
+  .brand{font-size:1.1rem}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head><body style="margin:0">
+
+<div id="scene" aria-label="王国の3Dマップ"></div>
+
+<header class="bar">
+  <div class="brand">ドラゴンキングダム<small>LAND &amp; DRAGON NFT</small></div>
+  <span id="mode" class="chip">デモ</span>
+  <button id="connect" class="primary">ウォレット接続</button>
+</header>
+
+<aside class="panel">
+  <div class="tabs" role="tablist">
+    <button id="tab-land" role="tab" aria-selected="true">土地</button>
+    <button id="tab-dragon" role="tab" aria-selected="false">ドラゴン</button>
+  </div>
+  <div class="sec">
+    <div class="stats">
+      <div class="stat"><b id="s-land">0</b><span>所有地</span></div>
+      <div class="stat"><b id="s-dragon">0</b><span>ドラゴン</span></div>
+      <div class="stat"><b id="s-free">0</b><span>空き区画</span></div>
+    </div>
+  </div>
+  <div id="view-land" class="sec"></div>
+  <div id="view-dragon" class="sec" hidden></div>
+</aside>
+
+<div id="toast" class="toast" hidden></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/ethers@6.13.4/dist/ethers.umd.min.js"></script>
+<script>
+/* ===================== 設定 =====================
+ * Sepolia にデプロイしたら、2つのアドレスをここに貼り付けてください。 */
+const CONFIG = {
+  LAND_ADDRESS:   "0x0000000000000000000000000000000000000000",
+  DRAGON_ADDRESS: "0x0000000000000000000000000000000000000000",
+  CHAIN_ID: 11155111,            // Sepolia
+  CHAIN_NAME: "Sepolia",
+};
+
+const SIZE = 20, TOTAL = SIZE * SIZE;
+const ZERO = "0x0000000000000000000000000000000000000000";
+const TERRAIN = [
+  { name: "草原", color: 0x6f9a4f, h: 0.30 },
+  { name: "森",   color: 0x3f6b3c, h: 0.38 },
+  { name: "山",   color: 0x7c7a86, h: 0.55 },
+  { name: "砂漠", color: 0xcfae6e, h: 0.26 },
+];
+const ELEMENTS = [
+  { name: "炎", en: "Fire",    color: "#ee6a3a" },
+  { name: "氷", en: "Ice",     color: "#86d6f2" },
+  { name: "雷", en: "Thunder", color: "#f3d143" },
+  { name: "闇", en: "Shadow",  color: "#9a73d4" },
+];
+const hasEthers = typeof window.ethers !== "undefined";
+
+/* 地形はコントラクトの terrainOf と同じ計算 */
+function terrainOf(id) {
+  if (hasEthers) return Number(BigInt(ethers.solidityPackedKeccak256(["string","uint256"],["terrain", id])) % 4n);
+  let h = 2166136261 ^ id; h = Math.imul(h ^ (h >>> 13), 16777619); return Math.abs(h) % 4;
+}
+const short = a => a.slice(0, 6) + "…" + a.slice(-4);
+
+/* ===================== デモ用バックエンド (ウォレットなし) ===================== */
+function makeDemo() {
+  const me = "0xDe0000000000000000000000000000000000Ae01";
+  const others = ["0xA11ce0000000000000000000000000000000B0b1","0xC4a7100000000000000000000000000000005e11","0x7e5a000000000000000000000000000000009a1d"];
+  const owners = Array(TOTAL).fill(ZERO);
+  let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  for (let i = 0; i < 36; i++) owners[Math.floor(rnd() * TOTAL)] = others[i % 3];
+  owners[9 * SIZE + 9] = me; owners[9 * SIZE + 10] = me;
+  const dragons = [
+    { owner: me, element: 0, power: 112, level: 3, landId: 9 * SIZE + 9, lastTrained: 0 },
+  ];
+  owners.forEach((o, id) => { if (o !== ZERO && o !== me && rnd() < .35) dragons.push({ owner: o, element: Math.floor(rnd() * 4), power: 50 + Math.floor(rnd() * 100), level: 1 + Math.floor(rnd() * 6), landId: id, lastTrained: 0 }); });
+  const wait = () => new Promise(r => setTimeout(r, 450));
+  return {
+    kind: "demo", account: me, cooldown: 15,
+    async load() { return { owners: owners.slice(), dragons: dragons.map((d, id) => ({ ...d, id })), landPrice: "0.001", dragonPrice: "0.002" }; },
+    async mintLand(x, y) { await wait(); const id = y * SIZE + x; if (owners[id] !== ZERO) throw new Error("already owned"); owners[id] = me; },
+    async hatch(landId) { await wait(); if (owners[landId] !== me) throw new Error("not your land");
+      dragons.push({ owner: me, element: Math.floor(Math.random() * 4), power: 50 + Math.floor(Math.random() * 100), level: 1, landId, lastTrained: 0 }); },
+    async moveTo(id, landId) { await wait(); if (owners[landId] !== me) throw new Error("not your land"); dragons[id].landId = landId; },
+    async train(id) { await wait(); const d = dragons[id]; const now = Date.now() / 1000;
+      if (now < d.lastTrained + this.cooldown) throw new Error("dragon is resting"); d.lastTrained = now; d.level++; },
+  };
+}
+
+/* ===================== ブロックチェーン用バックエンド ===================== */
+const LAND_ABI = [
+  "function landPrice() view returns (uint256)",
+  "function mintLand(uint256 x, uint256 y) payable returns (uint256)",
+  "function allOwners() view returns (address[])",
+];
+const DRAGON_ABI = [
+  "function dragonPrice() view returns (uint256)",
+  "function TRAIN_COOLDOWN() view returns (uint256)",
+  "function hatch(uint256 landId) payable returns (uint256)",
+  "function moveTo(uint256 dragonId, uint256 landId)",
+  "function train(uint256 dragonId)",
+  "function allDragons() view returns (address[] owners, tuple(uint8 element, uint16 power, uint16 level, uint32 landId, uint64 lastTrained)[] list)",
+];
+
+async function makeChain() {
+  if (!window.ethereum) throw new Error("NO_WALLET");
+  if (CONFIG.LAND_ADDRESS === ZERO) throw new Error("NO_CONFIG");
+  const hex = "0x" + CONFIG.CHAIN_ID.toString(16);
+  try { await window.ethereum.request({ method: "wallet_switchEthereumChain", params: [{ chainId: hex }] }); } catch (e) {}
+  const provider = new ethers.BrowserProvider(window.ethereum);
+  const signer = await provider.getSigner();
+  const net = await provider.getNetwork();
+  if (Number(net.chainId) !== CONFIG.CHAIN_ID) throw new Error("WRONG_CHAIN");
+  const land = new ethers.Contract(CONFIG.LAND_ADDRESS, LAND_ABI, signer);
+  const dragon = new ethers.Contract(CONFIG.DRAGON_ADDRESS, DRAGON_ABI, signer);
+  const account = await signer.getAddress();
+  const cooldown = Number(await dragon.TRAIN_COOLDOWN());
+  const send = async p => { const tx = await p; toast("ブロックの確定を待っています…"); await tx.wait(); };
+  let lp = 0n, dp = 0n;
+  return {
+    kind: "chain", account, cooldown,
+    async load() {
+      const [owners, all, l, d] = await Promise.all([land.allOwners(), dragon.allDragons(), land.landPrice(), dragon.dragonPrice()]);
+      lp = l; dp = d;
+      const dragons = all.list.map((x, id) => ({ id, owner: all.owners[id], element: Number(x.element), power: Number(x.power), level: Number(x.level), landId: Number(x.landId), lastTrained: Number(x.lastTrained) }));
+      return { owners: [...owners], dragons, landPrice: ethers.formatEther(l), dragonPrice: ethers.formatEther(d) };
+    },
+    mintLand: (x, y) => send(land.mintLand(x, y, { value: lp })),
+    hatch: id => send(dragon.hatch(id, { value: dp })),
+    moveTo: (id, l) => send(dragon.moveTo(id, l)),
+    train: id => send(dragon.train(id)),
+  };
+}
+
+/* ===================== 3D シーン ===================== */
+const host = document.getElementById("scene");
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+host.appendChild(renderer.domElement);
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x141a2e);
+scene.fog = new THREE.Fog(0x141a2e, 30, 60);
+const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 200);
+camera.position.set(0, 20, 20);
+const controls = new THREE.OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true; controls.maxPolarAngle = 1.25; controls.minDistance = 6; controls.maxDistance = 40;
+scene.add(new THREE.HemisphereLight(0xcfd8ff, 0x2a2018, 0.75));
+const sun = new THREE.DirectionalLight(0xffe2b0, 0.9); sun.position.set(-10, 20, 8); scene.add(sun);
+
+const base = new THREE.Mesh(new THREE.BoxGeometry(SIZE + 1, 0.4, SIZE + 1), new THREE.MeshLambertMaterial({ color: 0x2b2f3f }));
+base.position.y = -0.2; scene.add(base);
+
+const tilePos = id => new THREE.Vector3((id % SIZE) - SIZE / 2 + .5, 0, Math.floor(id / SIZE) - SIZE / 2 + .5);
+const tiles = [], deco = new THREE.Group(), castles = new THREE.Group(), dragonGroup = new THREE.Group();
+scene.add(deco, castles, dragonGroup);
+const boxG = new THREE.BoxGeometry(0.94, 1, 0.94), coneG = new THREE.ConeGeometry(0.16, 0.42, 6);
+for (let id = 0; id < TOTAL; id++) {
+  const t = TERRAIN[terrainOf(id)];
+  const m = new THREE.Mesh(boxG, new THREE.MeshLambertMaterial({ color: t.color }));
+  m.scale.y = t.h; const p = tilePos(id); m.position.set(p.x, t.h / 2, p.z);
+  m.userData.landId = id; tiles.push(m); scene.add(m);
+  const tt = terrainOf(id);
+  if (tt === 1) for (let k = 0; k < 2; k++) { const c = new THREE.Mesh(coneG, new THREE.MeshLambertMaterial({ color: 0x2d5230 })); c.position.set(p.x + (k ? .2 : -.18), t.h + .2, p.z + (k ? -.15 : .18)); deco.add(c); }
+  if (tt === 2) { const c = new THREE.Mesh(new THREE.ConeGeometry(.3, .5, 5), new THREE.MeshLambertMaterial({ color: 0x9a98a6 })); c.position.set(p.x, t.h + .25, p.z); deco.add(c); }
+}
+const ring = new THREE.Mesh(new THREE.RingGeometry(.5, .6, 32), new THREE.MeshBasicMaterial({ color: 0xe3b04b, side: THREE.DoubleSide }));
+ring.rotation.x = -Math.PI / 2; ring.visible = false; scene.add(ring);
+
+function ownerColor(addr) {
+  if (addr.toLowerCase() === state.account?.toLowerCase()) return new THREE.Color(0xe3b04b);
+  let h = 0; for (const c of addr.toLowerCase()) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  return new THREE.Color().setHSL((h % 360) / 360, .45, .55);
+}
+function makeCastle(color) {
+  const g = new THREE.Group(), stone = new THREE.MeshLambertMaterial({ color: 0xd9d2c3 }), roof = new THREE.MeshLambertMaterial({ color });
+  const keep = new THREE.Mesh(new THREE.BoxGeometry(.36, .4, .36), stone); keep.position.y = .2; g.add(keep);
+  const top = new THREE.Mesh(new THREE.ConeGeometry(.28, .3, 4), roof); top.position.y = .55; top.rotation.y = Math.PI / 4; g.add(top);
+  [[-.25,-.25],[.25,-.25],[-.25,.25],[.25,.25]].forEach(([x, z]) => {
+    const t = new THREE.Mesh(new THREE.CylinderGeometry(.07, .07, .3, 8), stone); t.position.set(x, .15, z); g.add(t);
+    const r = new THREE.Mesh(new THREE.ConeGeometry(.09, .14, 8), roof); r.position.set(x, .37, z); g.add(r);
+  });
+  return g;
+}
+function makeDragon(el, level) {
+  const col = new THREE.Color(ELEMENTS[el].color), mat = new THREE.MeshLambertMaterial({ color: col });
+  const dark = new THREE.MeshLambertMaterial({ color: col.clone().multiplyScalar(.6), side: THREE.DoubleSide });
+  const g = new THREE.Group();
+  const body = new THREE.Mesh(new THREE.SphereGeometry(.2, 12, 8), mat); body.scale.set(1, .8, 1.7); g.add(body);
+  const head = new THREE.Mesh(new THREE.SphereGeometry(.12, 10, 8), mat); head.position.set(0, .12, .38); g.add(head);
+  const snout = new THREE.Mesh(new THREE.ConeGeometry(.06, .16, 6), mat); snout.rotation.x = Math.PI / 2; snout.position.set(0, .1, .52); g.add(snout);
+  [-1, 1].forEach(s => { const h = new THREE.Mesh(new THREE.ConeGeometry(.025, .12, 5), dark); h.position.set(.06 * s, .24, .34); h.rotation.x = -.5; g.add(h); });
+  const tail = new THREE.Mesh(new THREE.ConeGeometry(.08, .5, 6), mat); tail.rotation.x = -Math.PI / 2; tail.position.z = -.5; g.add(tail);
+  const shape = new THREE.Shape(); shape.moveTo(0, 0); shape.lineTo(.55, .12); shape.lineTo(.45, -.08); shape.lineTo(.2, -.2); shape.lineTo(0, -.15);
+  const wg = new THREE.ShapeGeometry(shape);
+  const wings = [-1, 1].map(s => { const pivot = new THREE.Group(); const w = new THREE.Mesh(wg, dark); w.rotation.x = -Math.PI / 2; w.scale.x = s; pivot.add(w); pivot.position.set(.1 * s, .08, .05); g.add(pivot); return { pivot, s }; });
+  g.userData.wings = wings;
+  g.scale.setScalar(.9 + Math.min(level, 20) * .04);
+  return g;
+}
+
+/* ===================== 状態と描画 ===================== */
+const state = { backend: null, account: null, owners: [], dragons: [], landPrice: "-", dragonPrice: "-", selected: null, tab: "land", busy: false };
+const isMine = a => state.account && a && a.toLowerCase() === state.account.toLowerCase();
+
+function rebuildWorld() {
+  castles.clear();
+  state.owners.forEach((o, id) => {
+    if (o === ZERO) return;
+    const c = makeCastle(ownerColor(o)), p = tilePos(id); c.position.set(p.x, TERRAIN[terrainOf(id)].h, p.z); castles.add(c);
+  });
+  dragonGroup.clear();
+  state.dragons.forEach((d, i) => {
+    const m = makeDragon(d.element, d.level); m.userData.d = d; m.userData.phase = i * 1.7; dragonGroup.add(m);
+  });
+}
+
+async function refresh() {
+  const data = await state.backend.load();
+  Object.assign(state, data);
+  rebuildWorld(); render();
+}
+
+function render() {
+  const mine = state.owners.filter(isMine).length, myDragons = state.dragons.filter(d => isMine(d.owner));
+  document.getElementById("s-land").textContent = mine;
+  document.getElementById("s-dragon").textContent = myDragons.length;
+  document.getElementById("s-free").textContent = state.owners.filter(o => o === ZERO).length;
+  document.getElementById("tab-land").setAttribute("aria-selected", state.tab === "land");
+  document.getElementById("tab-dragon").setAttribute("aria-selected", state.tab === "dragon");
+  document.getElementById("view-land").hidden = state.tab !== "land";
+  document.getElementById("view-dragon").hidden = state.tab !== "dragon";
+  const unit = state.backend?.kind === "chain" ? "SepoliaETH" : "ETH（デモ）";
+
+  // 土地タブ
+  const L = document.getElementById("view-land"), s = state.selected;
+  if (s === null) {
+    L.innerHTML = `<div class="empty"><p class="hint">マップの区画をタップすると、所有者の確認や購入ができます。金色の城があなたの土地です。</p></div>`;
+  } else {
+    const o = state.owners[s], x = s % SIZE, y = Math.floor(s / SIZE), here = state.dragons.filter(d => d.landId === s);
+    const ownerLabel = o === ZERO ? "未所有" : isMine(o) ? "あなた" : `<span class="mono">${short(o)}</span>`;
+    L.innerHTML = `
+      <h2>区画 (${x}, ${y})</h2>
+      <dl class="kv">
+        <dt>地形</dt><dd>${TERRAIN[terrainOf(s)].name}</dd>
+        <dt>所有者</dt><dd>${ownerLabel}</dd>
+        <dt>トークンID</dt><dd class="mono">#${s}</dd>
+        <dt>滞在ドラゴン</dt><dd>${here.length} 頭</dd>
+      </dl>
+      ${o === ZERO ? `<button class="primary" data-act="mint">この土地を購入（${state.landPrice} ${unit}）</button>` : ""}
+      ${isMine(o) ? `<button class="primary" data-act="hatch">ドラゴンを孵化（${state.dragonPrice} ${unit}）</button>` : ""}
+      ${here.map(dragonCard).join("")}`;
+  }
+
+  // ドラゴンタブ
+  const D = document.getElementById("view-dragon");
+  D.innerHTML = myDragons.length
+    ? `<h2>あなたのドラゴン</h2>` + myDragons.map(dragonCard).join("")
+    : `<div class="empty"><p class="hint">まだドラゴンがいません。自分の土地を選んで「ドラゴンを孵化」を押してください。</p></div>`;
+
+  document.querySelectorAll("[data-act]").forEach(b => b.disabled = state.busy || !state.backend);
+  const sel = state.selected;
+  if (sel !== null) { const p = tilePos(sel); ring.position.set(p.x, TERRAIN[terrainOf(sel)].h + .01, p.z); ring.visible = true; } else ring.visible = false;
+}
+
+function dragonCard(d) {
+  const e = ELEMENTS[d.element], mine = isMine(d.owner);
+  const left = Math.max(0, Math.ceil(d.lastTrained + state.backend.cooldown - Date.now() / 1000));
+  const canMove = mine && state.selected !== null && isMine(state.owners[state.selected]) && state.selected !== d.landId;
+  return `<div class="dragon">
+    <div class="el" style="background:${e.color}">${e.name}</div>
+    <div class="name">${e.name}のドラゴン #${d.id}</div>
+    <div class="meta">Lv ${d.level} · パワー ${d.power} · 区画 (${d.landId % SIZE}, ${Math.floor(d.landId / SIZE)})${mine ? "" : ` · ${short(d.owner)}`}</div>
+    ${mine ? `<div class="row">
+      <button data-act="train" data-id="${d.id}" ${left ? "disabled" : ""}>${left ? `休憩中 ${fmt(left)}` : "訓練する"}</button>
+      ${canMove ? `<button data-act="move" data-id="${d.id}">選択中の区画へ移動</button>` : ""}
+      <button data-act="focus" data-id="${d.id}">見る</button>
+    </div>` : ""}
+  </div>`;
+}
+const fmt = s => s >= 60 ? `${Math.floor(s / 60)}分${String(s % 60).padStart(2, "0")}秒` : `${s}秒`;
+
+/* ===================== 操作 ===================== */
+let toastTimer;
+function toast(msg, err) {
+  const t = document.getElementById("toast"); t.textContent = msg; t.className = "toast" + (err ? " err" : ""); t.hidden = false;
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.hidden = true, err ? 5000 : 3000);
+}
+const ERRORS = {
+  "already owned": "この区画はすでに誰かが所有しています。",
+  "not your land": "自分の土地でしか操作できません。",
+  "not your dragon": "自分のドラゴンではありません。",
+  "dragon is resting": "ドラゴンは休憩中です。時間をおいて訓練してください。",
+  "not enough ETH": "支払い額が足りません。",
+  "insufficient funds": "ウォレットの残高が足りません。faucet でテスト用ETHを入手してください。",
+};
+function explain(e) {
+  if (e?.code === "ACTION_REJECTED" || e?.code === 4001) return "ウォレットで取り消されました。";
+  const msg = (e?.reason || e?.shortMessage || e?.message || "") + "";
+  for (const k in ERRORS) if (msg.includes(k)) return ERRORS[k];
+  return "処理に失敗しました：" + msg.slice(0, 120);
+}
+async function run(label, fn, done) {
+  if (state.busy) return;
+  state.busy = true; render();
+  try { if (state.backend.kind === "chain") toast("ウォレットで承認してください"); await fn(); await refresh(); toast(done); }
+  catch (e) { toast(explain(e), true); }
+  finally { state.busy = false; render(); }
+}
+
+document.querySelector(".panel").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  if (b.id === "tab-land" || b.id === "tab-dragon") { state.tab = b.id === "tab-land" ? "land" : "dragon"; return render(); }
+  const act = b.dataset.act, id = Number(b.dataset.id), s = state.selected;
+  if (act === "mint") run("mint", () => state.backend.mintLand(s % SIZE, Math.floor(s / SIZE)), "土地を手に入れました");
+  if (act === "hatch") run("hatch", () => state.backend.hatch(s), "ドラゴンが孵化しました");
+  if (act === "train") run("train", () => state.backend.train(id), "訓練でレベルが上がりました");
+  if (act === "move") run("move", () => state.backend.moveTo(id, s), "ドラゴンが移動しました");
+  if (act === "focus") { const d = state.dragons[id]; state.selected = d.landId; state.tab = "land"; const p = tilePos(d.landId); controls.target.set(p.x, 0, p.z); render(); }
+});
+
+document.getElementById("connect").addEventListener("click", async () => {
+  try {
+    const chain = await makeChain();
+    state.backend = chain; state.account = chain.account;
+    document.getElementById("mode").textContent = `${CONFIG.CHAIN_NAME} · ${short(chain.account)}`;
+    document.getElementById("mode").classList.add("live");
+    document.getElementById("connect").hidden = true;
+    await refresh(); toast("ウォレットに接続しました");
+  } catch (e) {
+    const m = { NO_WALLET: "ウォレットが見つかりません。MetaMaskアプリ内のブラウザで開くと接続できます。今はデモで遊べます。",
+      NO_CONFIG: "コントラクトのアドレスがまだ設定されていません。デプロイ後、CONFIG に貼り付けてください。",
+      WRONG_CHAIN: `ウォレットを ${CONFIG.CHAIN_NAME} ネットワークに切り替えてください。` }[e.message];
+    toast(m || explain(e), true);
+  }
+});
+
+/* タップで区画を選択 (ドラッグとは区別) */
+const ray = new THREE.Raycaster(), ptr = new THREE.Vector2(); let down = null;
+renderer.domElement.addEventListener("pointerdown", e => down = { x: e.clientX, y: e.clientY });
+renderer.domElement.addEventListener("pointerup", e => {
+  if (!down || Math.hypot(e.clientX - down.x, e.clientY - down.y) > 6) return;
+  const r = renderer.domElement.getBoundingClientRect();
+  ptr.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
+  ray.setFromCamera(ptr, camera);
+  const hit = ray.intersectObjects(tiles)[0];
+  state.selected = hit ? hit.object.userData.landId : null; state.tab = "land"; render();
+});
+
+function resize() {
+  const w = host.clientWidth, h = host.clientHeight;
+  renderer.setSize(w, h); camera.aspect = w / h; camera.updateProjectionMatrix();
+}
+addEventListener("resize", resize); resize();
+
+const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const clock = new THREE.Clock(); let tick = 0;
+renderer.setAnimationLoop(() => {
+  const t = still ? 0 : clock.getElapsedTime();
+  dragonGroup.children.forEach(g => {
+    const d = g.userData.d, p = tilePos(d.landId), a = t * .7 + g.userData.phase, r = .9;
+    g.position.set(p.x + Math.cos(a) * r, 1.6 + Math.sin(t * 2 + g.userData.phase) * .12, p.z + Math.sin(a) * r);
+    g.rotation.y = -a;   // 円の接線方向を向く
+    g.userData.wings.forEach(w => w.pivot.rotation.z = w.s * Math.sin(t * 8 + g.userData.phase) * .6);
+  });
+  ring.material.opacity = 1;
+  controls.update(); renderer.render(scene, camera);
+  if (++tick % 60 === 0 && state.tab === "dragon" && !state.busy) render();  // 休憩タイマー更新
+});
+
+/* デモで開始 */
+(async () => {
+  const demo = makeDemo(); state.backend = demo; state.account = demo.account;
+  await refresh(); state.selected = 9 * SIZE + 9; render();
+  const p = tilePos(state.selected); controls.target.set(p.x * .5, 0, p.z * .5);
+})();
+</script>
+</body></html>
