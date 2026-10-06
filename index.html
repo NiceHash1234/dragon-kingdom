@@ -5,16 +5,17 @@
 <style>
 /* Layout: full-bleed 3D map; one floating ledger panel (right on desktop, bottom sheet on phones) */
 :root{
-  --night:#141a2e;      /* sky / ground */
-  --dusk:#222b48;       /* panel */
-  --dusk-2:#2c375c;     /* raised rows */
+  --night:#141a2e;
+  --dusk:#222b48;
+  --dusk-2:#2c375c;
   --line:#3b4772;
-  --ink:#ece6d6;        /* text, parchment tone */
+  --ink:#ece6d6;
   --muted:#a9a6b8;
-  --gold:#e3b04b;       /* accent: crown gold */
+  --gold:#e3b04b;
   --gold-ink:#2a1f05;
   --danger:#ef7a6a;
   --ok:#8fd4a0;
+  --r-food:#b9d46a; --r-wood:#c99d6e; --r-stone:#b8bccb; --r-gold:#f0c45a;
   --f-display:"Marcellus","Times New Roman",serif;
   --f-body:"Zen Kaku Gothic New","Hiragino Sans","Noto Sans JP",system-ui,sans-serif;
   --f-mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
@@ -26,8 +27,7 @@ body{background:var(--night);color:var(--ink);font-family:var(--f-body);overflow
 #scene canvas{display:block}
 
 .bar{position:fixed;left:0;right:0;top:0;z-index:5;display:flex;align-items:center;gap:10px;flex-wrap:wrap;
-  padding:calc(env(safe-area-inset-top,0px) + 10px) 16px 10px;
-  background:linear-gradient(var(--night),transparent)}
+  padding:calc(env(safe-area-inset-top,0px) + 10px) 16px 10px;background:linear-gradient(var(--night),transparent)}
 .brand{font-family:var(--f-display);font-size:1.35rem;letter-spacing:.04em;margin-right:auto;white-space:nowrap}
 .brand small{display:block;font-family:var(--f-body);font-size:.68rem;color:var(--muted);letter-spacing:.12em}
 .chip{font-size:.72rem;padding:4px 9px;border-radius:999px;border:1px solid var(--line);color:var(--muted);background:var(--dusk);white-space:nowrap}
@@ -37,24 +37,28 @@ button:hover{border-color:var(--gold)}
 button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 button.primary{background:var(--gold);color:var(--gold-ink);border-color:var(--gold);font-weight:700}
 button:disabled{opacity:.45;cursor:not-allowed}
+button .cost{display:block;font-weight:400;font-size:.72rem;opacity:.85;margin-top:2px}
 
-.panel{position:fixed;z-index:6;right:16px;top:80px;width:340px;max-height:calc(100% - 100px);overflow:auto;
-  background:color-mix(in srgb,var(--dusk) 94%,transparent);border:1px solid var(--line);border-radius:14px;
-  box-shadow:0 18px 40px rgba(0,0,0,.35)}
+.panel{position:fixed;z-index:6;right:16px;top:80px;width:350px;max-height:calc(100% - 100px);overflow:auto;
+  background:color-mix(in srgb,var(--dusk) 95%,transparent);border:1px solid var(--line);border-radius:14px;box-shadow:0 18px 40px rgba(0,0,0,.35)}
 .tabs{display:flex;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--dusk);z-index:1}
 .tabs button{flex:1;border:0;border-radius:0;background:none;padding:12px;color:var(--muted)}
 .tabs button[aria-selected="true"]{color:var(--ink);box-shadow:inset 0 -2px 0 var(--gold)}
 .sec{padding:14px 16px;display:grid;gap:12px}
-.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.stat{background:var(--dusk-2);border-radius:8px;padding:8px 10px}
-.stat b{display:block;font-family:var(--f-mono);font-size:1.05rem;font-variant-numeric:tabular-nums}
-.stat span{font-size:.68rem;color:var(--muted);letter-spacing:.06em}
+.sec + .sec{border-top:1px solid var(--line)}
+.res{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.res div{background:var(--dusk-2);border-radius:8px;padding:7px 8px;min-width:0}
+.res b{display:block;font-family:var(--f-mono);font-size:.95rem;font-variant-numeric:tabular-nums;overflow:hidden;text-overflow:ellipsis}
+.res span{font-size:.68rem;color:var(--muted);display:flex;align-items:center;gap:4px}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex:none}
+.counts{display:flex;gap:14px;font-size:.78rem;color:var(--muted)}
+.counts b{color:var(--ink);font-family:var(--f-mono);font-variant-numeric:tabular-nums}
 h2{font-family:var(--f-display);font-weight:400;font-size:1.15rem;margin:0;text-wrap:balance}
 .kv{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:.85rem;margin:0}
 .kv dt{color:var(--muted)}
 .kv dd{margin:0;text-align:right;font-variant-numeric:tabular-nums;min-width:0;overflow-wrap:anywhere}
 .mono{font-family:var(--f-mono);font-size:.8rem}
-.hint{color:var(--muted);font-size:.82rem;line-height:1.6;margin:0}
+.hint{color:var(--muted);font-size:.8rem;line-height:1.6;margin:0}
 .row{display:flex;gap:8px;flex-wrap:wrap}
 .row button{flex:1}
 .dragon{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;align-items:center;background:var(--dusk-2);border-radius:10px;padding:10px 12px}
@@ -64,25 +68,29 @@ h2{font-family:var(--f-display);font-weight:400;font-size:1.15rem;margin:0;text-
 .dragon .row{grid-column:1/-1;margin-top:6px}
 .dragon .row button{padding:6px 8px;font-size:.78rem}
 .empty{border:1px dashed var(--line);border-radius:10px;padding:14px;text-align:center}
+.speed{font-size:.7rem;color:var(--muted)}
+.partner{display:grid;gap:10px;padding:12px;border:1px solid var(--gold);border-radius:10px;background:color-mix(in srgb,var(--gold) 8%,var(--dusk))}
+.field{display:grid;gap:6px;font-size:.8rem;color:var(--muted)}
+.field input{font:inherit;font-family:var(--f-mono);font-size:.9rem;padding:9px 10px;border-radius:8px;border:1px solid var(--line);background:var(--night);color:var(--ink)}
+.field input:focus-visible{outline:2px solid var(--gold);outline-offset:1px}
+.badge{font-size:.68rem;font-weight:700;padding:1px 6px;border-radius:999px;background:var(--gold);color:var(--gold-ink);vertical-align:2px}
 
 .toast{position:fixed;z-index:9;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 20px);
   background:var(--dusk-2);border:1px solid var(--line);padding:10px 16px;border-radius:10px;font-size:.85rem;max-width:calc(100% - 32px)}
 .toast.err{border-color:var(--danger);color:var(--danger)}
 
 @media (max-width:720px){
-  .panel{left:0;right:0;top:auto;bottom:0;width:auto;max-height:46%;border-radius:16px 16px 0 0;
-    padding-bottom:env(safe-area-inset-bottom,0px)}
-  .toast{bottom:calc(46% + 12px)}
+  .panel{left:0;right:0;top:auto;bottom:0;width:auto;max-height:50%;border-radius:16px 16px 0 0;padding-bottom:env(safe-area-inset-bottom,0px)}
+  .toast{bottom:calc(50% + 12px)}
   .brand{font-size:1.1rem}
 }
-@media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head><body style="margin:0">
 
 <div id="scene" aria-label="王国の3Dマップ"></div>
 
 <header class="bar">
-  <div class="brand">ドラゴンキングダム<small>LAND &amp; DRAGON NFT</small></div>
+  <div class="brand">ドラゴンキングダム<small>LAND · CASTLE · DRAGON · RESOURCES</small></div>
   <span id="mode" class="chip">デモ</span>
   <button id="connect" class="primary">ウォレット接続</button>
 </header>
@@ -93,11 +101,10 @@ h2{font-family:var(--f-display);font-weight:400;font-size:1.15rem;margin:0;text-
     <button id="tab-dragon" role="tab" aria-selected="false">ドラゴン</button>
   </div>
   <div class="sec">
-    <div class="stats">
-      <div class="stat"><b id="s-land">0</b><span>所有地</span></div>
-      <div class="stat"><b id="s-dragon">0</b><span>ドラゴン</span></div>
-      <div class="stat"><b id="s-free">0</b><span>空き区画</span></div>
-    </div>
+    <div class="res" id="res"></div>
+    <div class="counts"><span>所有地 <b id="c-land">0</b></span><span>城 <b id="c-castle">0</b></span><span>ドラゴン <b id="c-dragon">0</b></span></div>
+    <button id="harvest" class="primary" data-act="harvest">すべて収穫</button>
+    <p id="speed" class="speed"></p>
   </div>
   <div id="view-land" class="sec"></div>
   <div id="view-dragon" class="sec" hidden></div>
@@ -110,104 +117,151 @@ h2{font-family:var(--f-display);font-weight:400;font-size:1.15rem;margin:0;text-
 <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.4/dist/ethers.umd.min.js"></script>
 <script>
 /* ===================== 設定 =====================
- * Sepolia にデプロイしたら、2つのアドレスをここに貼り付けてください。 */
+ * デプロイ後、4つのアドレスをここに貼り付けてください。 */
 const CONFIG = {
-  LAND_ADDRESS:   "0x0000000000000000000000000000000000000000",
-  DRAGON_ADDRESS: "0x0000000000000000000000000000000000000000",
-  CHAIN_ID: 11155111,            // Sepolia
+  LAND_ADDRESS:      "0x0000000000000000000000000000000000000000",
+  RESOURCES_ADDRESS: "0x0000000000000000000000000000000000000000",
+  CASTLE_ADDRESS:    "0x0000000000000000000000000000000000000000",
+  DRAGON_ADDRESS:    "0x0000000000000000000000000000000000000000",
+  CHAIN_ID: 11155111,
   CHAIN_NAME: "Sepolia",
+  CURRENCY: "ETH",
+  // 相棒ドラゴンの対象コレクション（Polygon: League of Kingdoms Drago）。なければ 0x0
+  PARTNER_ADDRESS:   "0x0000000000000000000000000000000000000000",
 };
 
-const SIZE = 20, TOTAL = SIZE * SIZE;
-const ZERO = "0x0000000000000000000000000000000000000000";
+/* ===================== ルール（コントラクトと同じ値） ===================== */
+const SIZE = 20, TOTAL = SIZE * SIZE, ZERO = "0x0000000000000000000000000000000000000000";
+const MAX_STORE = 24 * 3600, COOLDOWN = 3600, MAX_LEVEL = 10;
+const BUILD_COST = [0, 500, 500, 0];
+const upgradeCost = c => [300 * c, 600 * c, 600 * c, 50 * c];
+const HATCH_FOOD = 300, TRAIN_FOOD = lv => 100 * lv;
+const STARTER = [1000, 1000, 1000, 100];
+const RES = [
+  { name: "食料", css: "--r-food" }, { name: "木材", css: "--r-wood" },
+  { name: "石材", css: "--r-stone" }, { name: "金", css: "--r-gold" },
+];
 const TERRAIN = [
-  { name: "草原", color: 0x6f9a4f, h: 0.30 },
-  { name: "森",   color: 0x3f6b3c, h: 0.38 },
-  { name: "山",   color: 0x7c7a86, h: 0.55 },
-  { name: "砂漠", color: 0xcfae6e, h: 0.26 },
+  { name: "草原", color: 0x6f9a4f, h: 0.30 }, { name: "森", color: 0x3f6b3c, h: 0.38 },
+  { name: "山", color: 0x7c7a86, h: 0.55 },   { name: "砂漠", color: 0xcfae6e, h: 0.26 },
 ];
 const ELEMENTS = [
-  { name: "炎", en: "Fire",    color: "#ee6a3a" },
-  { name: "氷", en: "Ice",     color: "#86d6f2" },
-  { name: "雷", en: "Thunder", color: "#f3d143" },
-  { name: "闇", en: "Shadow",  color: "#9a73d4" },
+  { name: "炎", color: "#ee6a3a" }, { name: "氷", color: "#86d6f2" },
+  { name: "雷", color: "#f3d143" }, { name: "闇", color: "#9a73d4" },
 ];
 const hasEthers = typeof window.ethers !== "undefined";
-
-/* 地形はコントラクトの terrainOf と同じ計算 */
 function terrainOf(id) {
-  if (hasEthers) return Number(BigInt(ethers.solidityPackedKeccak256(["string","uint256"],["terrain", id])) % 4n);
+  if (hasEthers) return Number(BigInt(ethers.solidityPackedKeccak256(["string", "uint256"], ["terrain", id])) % 4n);
   let h = 2166136261 ^ id; h = Math.imul(h ^ (h >>> 13), 16777619); return Math.abs(h) % 4;
 }
+const TER = Array.from({ length: TOTAL }, (_, i) => terrainOf(i));
+const ratePerHour = id => Math.floor((TER[id] === 3 ? 20 : 100) * (2 + (state.levels[id] || 0)) / 2);
+function pending(id) {
+  const t = state.last[id]; if (!t) return 0;
+  const dt = Math.min(MAX_STORE, Math.max(0, state.backend.now() - t));
+  return Math.floor(ratePerHour(id) * dt / 3600);
+}
 const short = a => a.slice(0, 6) + "…" + a.slice(-4);
+const num = n => Number(n).toLocaleString("ja-JP");
+const costText = c => c.map((v, i) => v ? `${RES[i].name}${num(v)}` : "").filter(Boolean).join("・");
+const canPay = c => c.every((v, i) => state.balances[i] >= v);
 
-/* ===================== デモ用バックエンド (ウォレットなし) ===================== */
+/* ===================== デモ用バックエンド（時間60倍速） ===================== */
 function makeDemo() {
+  const SPEED = 60, t0 = Date.now() / 1000, now = () => Math.floor(t0 + (Date.now() / 1000 - t0) * SPEED);
   const me = "0xDe0000000000000000000000000000000000Ae01";
-  const others = ["0xA11ce0000000000000000000000000000000B0b1","0xC4a7100000000000000000000000000000005e11","0x7e5a000000000000000000000000000000009a1d"];
-  const owners = Array(TOTAL).fill(ZERO);
+  const others = ["0xA11ce0000000000000000000000000000000B0b1", "0xC4a7100000000000000000000000000000005e11", "0x7e5a000000000000000000000000000000009a1d"];
+  const owners = Array(TOTAL).fill(ZERO), levels = Array(TOTAL).fill(0), last = Array(TOTAL).fill(0);
   let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
-  for (let i = 0; i < 36; i++) owners[Math.floor(rnd() * TOTAL)] = others[i % 3];
-  owners[9 * SIZE + 9] = me; owners[9 * SIZE + 10] = me;
-  const dragons = [
-    { owner: me, element: 0, power: 112, level: 3, landId: 9 * SIZE + 9, lastTrained: 0 },
-  ];
+  for (let i = 0; i < 40; i++) { const id = Math.floor(rnd() * TOTAL); owners[id] = others[i % 3]; if (rnd() < .6) levels[id] = 1 + Math.floor(rnd() * 6); }
+  // 自分の土地：中央付近で4種類の地形を1つずつ
+  const mine = [];
+  for (let t = 0; t < 4; t++) for (let r = 0; r < 6 && mine.length === t; r++)
+    for (let y = 9 - r; y <= 10 + r && mine.length === t; y++) for (let x = 9 - r; x <= 10 + r; x++) {
+      const id = y * SIZE + x; if (TER[id] === t && owners[id] === ZERO && !mine.includes(id)) { mine.push(id); break; }
+    }
+  mine.forEach(id => { owners[id] = me; last[id] = now() - 3 * 3600; });
+  levels[mine[0]] = 2;
+  const bal = [1450, 820, 640, 90];
+  const dragons = [{ owner: me, element: 0, power: 112, level: 3, landId: mine[0], lastTrained: 0 }];
   owners.forEach((o, id) => { if (o !== ZERO && o !== me && rnd() < .35) dragons.push({ owner: o, element: Math.floor(rnd() * 4), power: 50 + Math.floor(rnd() * 100), level: 1 + Math.floor(rnd() * 6), landId: id, lastTrained: 0 }); });
-  const wait = () => new Promise(r => setTimeout(r, 450));
+  const wait = () => new Promise(r => setTimeout(r, 400));
+  const claimedP = new Set();
+  const spend = c => { if (!c.every((v, i) => bal[i] >= v)) throw new Error("insufficient balance"); c.forEach((v, i) => bal[i] -= v); };
+  const settle = id => { const t = last[id]; if (t) { const lv = levels[id], dt = Math.min(MAX_STORE, now() - t); bal[TER[id]] += Math.floor((TER[id] === 3 ? 20 : 100) * (2 + lv) / 2 * dt / 3600); } last[id] = now(); };
   return {
-    kind: "demo", account: me, cooldown: 15,
-    async load() { return { owners: owners.slice(), dragons: dragons.map((d, id) => ({ ...d, id })), landPrice: "0.001", dragonPrice: "0.002" }; },
+    kind: "demo", account: me, now, focus: mine[0], speed: SPEED,
+    async load() { return { owners: owners.slice(), levels: levels.slice(), last: last.slice(), balances: bal.slice(), starter: true, landPrice: "1", dragonPrice: "2", dragons: dragons.map((d, id) => ({ ...d, id })) }; },
     async mintLand(x, y) { await wait(); const id = y * SIZE + x; if (owners[id] !== ZERO) throw new Error("already owned"); owners[id] = me; },
-    async hatch(landId) { await wait(); if (owners[landId] !== me) throw new Error("not your land");
-      dragons.push({ owner: me, element: Math.floor(Math.random() * 4), power: 50 + Math.floor(Math.random() * 100), level: 1, landId, lastTrained: 0 }); },
-    async moveTo(id, landId) { await wait(); if (owners[landId] !== me) throw new Error("not your land"); dragons[id].landId = landId; },
-    async train(id) { await wait(); const d = dragons[id]; const now = Date.now() / 1000;
-      if (now < d.lastTrained + this.cooldown) throw new Error("dragon is resting"); d.lastTrained = now; d.level++; },
+    async harvest(ids) { await wait(); ids.forEach(settle); },
+    async build(id) { await wait(); if (levels[id]) throw new Error("castle exists"); settle(id); spend(BUILD_COST); levels[id] = 1; },
+    async upgrade(id) { await wait(); if (levels[id] >= MAX_LEVEL) throw new Error("max level"); settle(id); spend(upgradeCost(levels[id])); levels[id]++; },
+    async hatch(id) { await wait(); if (owners[id] !== me) throw new Error("not your land"); spend([HATCH_FOOD, 0, 0, 0]);
+      dragons.push({ owner: me, element: Math.floor(Math.random() * 4), power: 50 + Math.floor(Math.random() * 100), level: 1, landId: id, lastTrained: 0 }); },
+    async moveTo(i, id) { await wait(); dragons[i].landId = id; },
+    partnerEnabled: true,
+    async checkPartner(tid) { await wait(); return { owner: tid === 38517 ? me : others[0], claimed: claimedP.has(tid) }; },
+    async claimPartner(tid, id) { await wait(); if (tid !== 38517) throw new Error("not partner holder"); if (claimedP.has(tid)) throw new Error("partner already claimed");
+      if (owners[id] !== me) throw new Error("not your land"); claimedP.add(tid);
+      dragons.push({ owner: me, element: Math.floor(Math.random() * 4), power: 100 + Math.floor(Math.random() * 50), level: 5, landId: id, lastTrained: 0, partner: true }); },
+    async train(i) { await wait(); const d = dragons[i]; if (now() < d.lastTrained + COOLDOWN) throw new Error("dragon is resting");
+      spend([TRAIN_FOOD(d.level), 0, 0, 0]); d.lastTrained = now(); d.level++; },
   };
 }
 
 /* ===================== ブロックチェーン用バックエンド ===================== */
-const LAND_ABI = [
-  "function landPrice() view returns (uint256)",
-  "function mintLand(uint256 x, uint256 y) payable returns (uint256)",
-  "function allOwners() view returns (address[])",
-];
-const DRAGON_ABI = [
-  "function dragonPrice() view returns (uint256)",
-  "function TRAIN_COOLDOWN() view returns (uint256)",
-  "function hatch(uint256 landId) payable returns (uint256)",
-  "function moveTo(uint256 dragonId, uint256 landId)",
-  "function train(uint256 dragonId)",
-  "function allDragons() view returns (address[] owners, tuple(uint8 element, uint16 power, uint16 level, uint32 landId, uint64 lastTrained)[] list)",
-];
+const ABI = {
+  land: ["function landPrice() view returns (uint256)", "function mintLand(uint256 x, uint256 y) payable returns (uint256)", "function allOwners() view returns (address[])"],
+  res: ["function harvest(uint256[] landIds)", "function allLastHarvest() view returns (uint64[400])",
+        "function balanceOfBatch(address[] accounts, uint256[] ids) view returns (uint256[])", "function starterClaimed(address) view returns (bool)"],
+  castle: ["function build(uint256 landId)", "function upgrade(uint256 landId)", "function allLevels() view returns (uint8[400])"],
+  dragon: ["function dragonPrice() view returns (uint256)", "function hatch(uint256 landId) payable returns (uint256)",
+           "function moveTo(uint256 dragonId, uint256 landId)", "function train(uint256 dragonId)",
+           "function claimPartner(uint256 partnerTokenId, uint256 landId) returns (uint256)", "function partnerClaimed(uint256) view returns (bool)",
+           "function allDragons() view returns (address[] owners, tuple(uint8 element, uint16 power, uint16 level, uint32 landId, uint64 lastTrained, bool partner)[] list)"],
+  partner: ["function ownerOf(uint256 tokenId) view returns (address)"],
+};
 
 async function makeChain() {
   if (!window.ethereum) throw new Error("NO_WALLET");
   if (CONFIG.LAND_ADDRESS === ZERO) throw new Error("NO_CONFIG");
-  const hex = "0x" + CONFIG.CHAIN_ID.toString(16);
-  try { await window.ethereum.request({ method: "wallet_switchEthereumChain", params: [{ chainId: hex }] }); } catch (e) {}
+  try { await window.ethereum.request({ method: "wallet_switchEthereumChain", params: [{ chainId: "0x" + CONFIG.CHAIN_ID.toString(16) }] }); } catch (e) {}
   const provider = new ethers.BrowserProvider(window.ethereum);
   const signer = await provider.getSigner();
-  const net = await provider.getNetwork();
-  if (Number(net.chainId) !== CONFIG.CHAIN_ID) throw new Error("WRONG_CHAIN");
-  const land = new ethers.Contract(CONFIG.LAND_ADDRESS, LAND_ABI, signer);
-  const dragon = new ethers.Contract(CONFIG.DRAGON_ADDRESS, DRAGON_ABI, signer);
+  if (Number((await provider.getNetwork()).chainId) !== CONFIG.CHAIN_ID) throw new Error("WRONG_CHAIN");
+  const c = (a, abi) => new ethers.Contract(a, abi, signer);
+  const land = c(CONFIG.LAND_ADDRESS, ABI.land), res = c(CONFIG.RESOURCES_ADDRESS, ABI.res);
+  const castle = c(CONFIG.CASTLE_ADDRESS, ABI.castle), dragon = c(CONFIG.DRAGON_ADDRESS, ABI.dragon);
   const account = await signer.getAddress();
-  const cooldown = Number(await dragon.TRAIN_COOLDOWN());
   const send = async p => { const tx = await p; toast("ブロックの確定を待っています…"); await tx.wait(); };
   let lp = 0n, dp = 0n;
   return {
-    kind: "chain", account, cooldown,
+    kind: "chain", account, now: () => Math.floor(Date.now() / 1000),
     async load() {
-      const [owners, all, l, d] = await Promise.all([land.allOwners(), dragon.allDragons(), land.landPrice(), dragon.dragonPrice()]);
+      const [owners, levels, last, bals, starter, all, l, d] = await Promise.all([
+        land.allOwners(), castle.allLevels(), res.allLastHarvest(), res.balanceOfBatch(Array(4).fill(account), [0, 1, 2, 3]),
+        res.starterClaimed(account), dragon.allDragons(), land.landPrice(), dragon.dragonPrice()]);
       lp = l; dp = d;
-      const dragons = all.list.map((x, id) => ({ id, owner: all.owners[id], element: Number(x.element), power: Number(x.power), level: Number(x.level), landId: Number(x.landId), lastTrained: Number(x.lastTrained) }));
-      return { owners: [...owners], dragons, landPrice: ethers.formatEther(l), dragonPrice: ethers.formatEther(d) };
+      return {
+        owners: [...owners], levels: [...levels].map(Number), last: [...last].map(Number), balances: [...bals].map(Number), starter,
+        landPrice: ethers.formatEther(l), dragonPrice: ethers.formatEther(d),
+        dragons: all.list.map((x, id) => ({ id, owner: all.owners[id], element: Number(x.element), power: Number(x.power), level: Number(x.level), landId: Number(x.landId), lastTrained: Number(x.lastTrained), partner: x.partner })),
+      };
     },
     mintLand: (x, y) => send(land.mintLand(x, y, { value: lp })),
+    harvest: ids => send(res.harvest(ids)),
+    build: id => send(castle.build(id)),
+    upgrade: id => send(castle.upgrade(id)),
     hatch: id => send(dragon.hatch(id, { value: dp })),
-    moveTo: (id, l) => send(dragon.moveTo(id, l)),
-    train: id => send(dragon.train(id)),
+    moveTo: (i, id) => send(dragon.moveTo(i, id)),
+    train: i => send(dragon.train(i)),
+    partnerEnabled: CONFIG.PARTNER_ADDRESS !== ZERO,
+    async checkPartner(tid) {
+      const p = c(CONFIG.PARTNER_ADDRESS, ABI.partner);
+      const [owner, claimed] = await Promise.all([p.ownerOf(tid).catch(() => ZERO), dragon.partnerClaimed(tid)]);
+      return { owner, claimed };
+    },
+    claimPartner: (tid, id) => send(dragon.claimPartner(tid, id)),
   };
 }
 
@@ -225,7 +279,6 @@ const controls = new THREE.OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true; controls.maxPolarAngle = 1.25; controls.minDistance = 6; controls.maxDistance = 40;
 scene.add(new THREE.HemisphereLight(0xcfd8ff, 0x2a2018, 0.75));
 const sun = new THREE.DirectionalLight(0xffe2b0, 0.9); sun.position.set(-10, 20, 8); scene.add(sun);
-
 const base = new THREE.Mesh(new THREE.BoxGeometry(SIZE + 1, 0.4, SIZE + 1), new THREE.MeshLambertMaterial({ color: 0x2b2f3f }));
 base.position.y = -0.2; scene.add(base);
 
@@ -233,32 +286,44 @@ const tilePos = id => new THREE.Vector3((id % SIZE) - SIZE / 2 + .5, 0, Math.flo
 const tiles = [], deco = new THREE.Group(), castles = new THREE.Group(), dragonGroup = new THREE.Group();
 scene.add(deco, castles, dragonGroup);
 const boxG = new THREE.BoxGeometry(0.94, 1, 0.94), coneG = new THREE.ConeGeometry(0.16, 0.42, 6);
+const goldMat = new THREE.MeshLambertMaterial({ color: 0xf0c45a, emissive: 0x3a2a00 });
 for (let id = 0; id < TOTAL; id++) {
-  const t = TERRAIN[terrainOf(id)];
+  const tt = TER[id], t = TERRAIN[tt], p = tilePos(id);
   const m = new THREE.Mesh(boxG, new THREE.MeshLambertMaterial({ color: t.color }));
-  m.scale.y = t.h; const p = tilePos(id); m.position.set(p.x, t.h / 2, p.z);
-  m.userData.landId = id; tiles.push(m); scene.add(m);
-  const tt = terrainOf(id);
-  if (tt === 1) for (let k = 0; k < 2; k++) { const c = new THREE.Mesh(coneG, new THREE.MeshLambertMaterial({ color: 0x2d5230 })); c.position.set(p.x + (k ? .2 : -.18), t.h + .2, p.z + (k ? -.15 : .18)); deco.add(c); }
-  if (tt === 2) { const c = new THREE.Mesh(new THREE.ConeGeometry(.3, .5, 5), new THREE.MeshLambertMaterial({ color: 0x9a98a6 })); c.position.set(p.x, t.h + .25, p.z); deco.add(c); }
+  m.scale.y = t.h; m.position.set(p.x, t.h / 2, p.z); m.userData.landId = id; tiles.push(m); scene.add(m);
+  if (tt === 1) for (let k = 0; k < 2; k++) { const c = new THREE.Mesh(coneG, new THREE.MeshLambertMaterial({ color: 0x2d5230 })); c.position.set(p.x + (k ? .22 : -.2), t.h + .2, p.z + (k ? -.18 : .2)); deco.add(c); }
+  if (tt === 2) { const c = new THREE.Mesh(new THREE.ConeGeometry(.28, .45, 5), new THREE.MeshLambertMaterial({ color: 0x9a98a6 })); c.position.set(p.x + .18, t.h + .22, p.z - .18); deco.add(c); }
+  if (tt === 3 && id % 3 === 0) { const c = new THREE.Mesh(new THREE.OctahedronGeometry(.08), goldMat); c.position.set(p.x - .25, t.h + .08, p.z + .25); deco.add(c); }
 }
 const ring = new THREE.Mesh(new THREE.RingGeometry(.5, .6, 32), new THREE.MeshBasicMaterial({ color: 0xe3b04b, side: THREE.DoubleSide }));
 ring.rotation.x = -Math.PI / 2; ring.visible = false; scene.add(ring);
 
 function ownerColor(addr) {
-  if (addr.toLowerCase() === state.account?.toLowerCase()) return new THREE.Color(0xe3b04b);
+  if (isMine(addr)) return new THREE.Color(0xe3b04b);
   let h = 0; for (const c of addr.toLowerCase()) h = (h * 31 + c.charCodeAt(0)) >>> 0;
   return new THREE.Color().setHSL((h % 360) / 360, .45, .55);
 }
-function makeCastle(color) {
-  const g = new THREE.Group(), stone = new THREE.MeshLambertMaterial({ color: 0xd9d2c3 }), roof = new THREE.MeshLambertMaterial({ color });
-  const keep = new THREE.Mesh(new THREE.BoxGeometry(.36, .4, .36), stone); keep.position.y = .2; g.add(keep);
-  const top = new THREE.Mesh(new THREE.ConeGeometry(.28, .3, 4), roof); top.position.y = .55; top.rotation.y = Math.PI / 4; g.add(top);
-  [[-.25,-.25],[.25,-.25],[-.25,.25],[.25,.25]].forEach(([x, z]) => {
-    const t = new THREE.Mesh(new THREE.CylinderGeometry(.07, .07, .3, 8), stone); t.position.set(x, .15, z); g.add(t);
-    const r = new THREE.Mesh(new THREE.ConeGeometry(.09, .14, 8), roof); r.position.set(x, .37, z); g.add(r);
+const stoneMat = new THREE.MeshLambertMaterial({ color: 0xd9d2c3 });
+function makeCastle(color, level) {
+  const g = new THREE.Group(), roof = new THREE.MeshLambertMaterial({ color });
+  const keepH = .3 + level * .04;
+  const keep = new THREE.Mesh(new THREE.BoxGeometry(.34, keepH, .34), stoneMat); keep.position.y = keepH / 2; g.add(keep);
+  const top = new THREE.Mesh(new THREE.ConeGeometry(.27, .3, 4), roof); top.position.y = keepH + .15; top.rotation.y = Math.PI / 4; g.add(top);
+  const towers = level >= 3 ? [[-.27,-.27],[.27,-.27],[-.27,.27],[.27,.27]] : [[-.27,.27],[.27,.27]];
+  towers.forEach(([x, z]) => {
+    const th = .22 + level * .02;
+    const t = new THREE.Mesh(new THREE.CylinderGeometry(.07, .07, th, 8), stoneMat); t.position.set(x, th / 2, z); g.add(t);
+    const r = new THREE.Mesh(new THREE.ConeGeometry(.09, .14, 8), roof); r.position.set(x, th + .07, z); g.add(r);
   });
+  if (level >= 6) { const wall = new THREE.Mesh(new THREE.BoxGeometry(.6, .08, .06), stoneMat); wall.position.set(0, .04, .3); g.add(wall); }
   return g;
+}
+function makeFlag(color) {
+  const g = new THREE.Group();
+  const pole = new THREE.Mesh(new THREE.CylinderGeometry(.015, .015, .45, 6), stoneMat); pole.position.y = .22; g.add(pole);
+  const flag = new THREE.Mesh(new THREE.PlaneGeometry(.22, .14), new THREE.MeshLambertMaterial({ color, side: THREE.DoubleSide }));
+  flag.position.set(.11, .37, 0); g.add(flag);
+  g.position.set(-.25, 0, -.25); return g;
 }
 function makeDragon(el, level) {
   const col = new THREE.Color(ELEMENTS[el].color), mat = new THREE.MeshLambertMaterial({ color: col });
@@ -271,92 +336,134 @@ function makeDragon(el, level) {
   const tail = new THREE.Mesh(new THREE.ConeGeometry(.08, .5, 6), mat); tail.rotation.x = -Math.PI / 2; tail.position.z = -.5; g.add(tail);
   const shape = new THREE.Shape(); shape.moveTo(0, 0); shape.lineTo(.55, .12); shape.lineTo(.45, -.08); shape.lineTo(.2, -.2); shape.lineTo(0, -.15);
   const wg = new THREE.ShapeGeometry(shape);
-  const wings = [-1, 1].map(s => { const pivot = new THREE.Group(); const w = new THREE.Mesh(wg, dark); w.rotation.x = -Math.PI / 2; w.scale.x = s; pivot.add(w); pivot.position.set(.1 * s, .08, .05); g.add(pivot); return { pivot, s }; });
-  g.userData.wings = wings;
+  g.userData.wings = [-1, 1].map(s => { const pivot = new THREE.Group(); const w = new THREE.Mesh(wg, dark); w.rotation.x = -Math.PI / 2; w.scale.x = s; pivot.add(w); pivot.position.set(.1 * s, .08, .05); g.add(pivot); return { pivot, s }; });
   g.scale.setScalar(.9 + Math.min(level, 20) * .04);
   return g;
 }
 
 /* ===================== 状態と描画 ===================== */
-const state = { backend: null, account: null, owners: [], dragons: [], landPrice: "-", dragonPrice: "-", selected: null, tab: "land", busy: false };
+const state = { backend: null, account: null, owners: [], levels: [], last: [], balances: [0, 0, 0, 0], starter: true, dragons: [], landPrice: "-", dragonPrice: "-", selected: null, tab: "land", busy: false, partnerInput: "" };
 const isMine = a => state.account && a && a.toLowerCase() === state.account.toLowerCase();
+const myLands = () => state.owners.map((o, i) => isMine(o) ? i : -1).filter(i => i >= 0);
 
 function rebuildWorld() {
   castles.clear();
   state.owners.forEach((o, id) => {
     if (o === ZERO) return;
-    const c = makeCastle(ownerColor(o)), p = tilePos(id); c.position.set(p.x, TERRAIN[terrainOf(id)].h, p.z); castles.add(c);
+    const lv = state.levels[id], obj = lv ? makeCastle(ownerColor(o), lv) : makeFlag(ownerColor(o)), p = tilePos(id);
+    obj.position.x += p.x; obj.position.z += p.z; obj.position.y = TERRAIN[TER[id]].h; castles.add(obj);
   });
   dragonGroup.clear();
-  state.dragons.forEach((d, i) => {
-    const m = makeDragon(d.element, d.level); m.userData.d = d; m.userData.phase = i * 1.7; dragonGroup.add(m);
-  });
+  state.dragons.forEach((d, i) => { const m = makeDragon(d.element, d.level); m.userData.d = d; m.userData.phase = i * 1.7; dragonGroup.add(m); });
 }
 
-async function refresh() {
-  const data = await state.backend.load();
-  Object.assign(state, data);
-  rebuildWorld(); render();
+async function refresh() { Object.assign(state, await state.backend.load()); rebuildWorld(); render(); }
+
+function harvestPreview() {
+  const sum = [0, 0, 0, 0]; let fresh = 0;
+  myLands().forEach(id => { if (!state.last[id]) fresh++; sum[TER[id]] += pending(id); });
+  if (!state.starter) STARTER.forEach((v, i) => sum[i] += v);
+  return { sum, fresh };
 }
 
 function render() {
-  const mine = state.owners.filter(isMine).length, myDragons = state.dragons.filter(d => isMine(d.owner));
-  document.getElementById("s-land").textContent = mine;
-  document.getElementById("s-dragon").textContent = myDragons.length;
-  document.getElementById("s-free").textContent = state.owners.filter(o => o === ZERO).length;
+  const lands = myLands(), myDragons = state.dragons.filter(d => isMine(d.owner));
+  document.getElementById("res").innerHTML = RES.map((r, i) =>
+    `<div><span><i class="dot" style="background:var(${r.css})"></i>${r.name}</span><b>${num(state.balances[i])}</b></div>`).join("");
+  document.getElementById("c-land").textContent = lands.length;
+  document.getElementById("c-castle").textContent = lands.filter(id => state.levels[id]).length;
+  document.getElementById("c-dragon").textContent = myDragons.length;
+  document.getElementById("speed").textContent = state.backend?.speed ? `デモでは時間が${state.backend.speed}倍速で進みます（1分＝1時間）。` : "";
   document.getElementById("tab-land").setAttribute("aria-selected", state.tab === "land");
   document.getElementById("tab-dragon").setAttribute("aria-selected", state.tab === "dragon");
   document.getElementById("view-land").hidden = state.tab !== "land";
   document.getElementById("view-dragon").hidden = state.tab !== "dragon";
-  const unit = state.backend?.kind === "chain" ? "SepoliaETH" : "ETH（デモ）";
+  const unit = state.backend?.kind === "chain" ? CONFIG.CURRENCY : "POL（デモ）";
 
-  // 土地タブ
   const L = document.getElementById("view-land"), s = state.selected;
   if (s === null) {
-    L.innerHTML = `<div class="empty"><p class="hint">マップの区画をタップすると、所有者の確認や購入ができます。金色の城があなたの土地です。</p></div>`;
+    L.innerHTML = `<div class="empty"><p class="hint">マップの区画をタップすると、所有者の確認や購入、城の建設ができます。金色の旗と城があなたの土地です。</p></div>`;
   } else {
-    const o = state.owners[s], x = s % SIZE, y = Math.floor(s / SIZE), here = state.dragons.filter(d => d.landId === s);
-    const ownerLabel = o === ZERO ? "未所有" : isMine(o) ? "あなた" : `<span class="mono">${short(o)}</span>`;
+    const o = state.owners[s], x = s % SIZE, y = Math.floor(s / SIZE), lv = state.levels[s], mine = isMine(o);
+    const here = state.dragons.filter(d => d.landId === s);
+    const ownerLabel = o === ZERO ? "未所有" : mine ? "あなた" : `<span class="mono">${short(o)}</span>`;
+    const r = RES[TER[s]].name;
+    let actions = "";
+    if (o === ZERO) actions = `<button class="primary" data-act="mint">この土地を購入<span class="cost">${state.landPrice} ${unit}</span></button>`;
+    if (mine) {
+      const castleBtn = !lv
+        ? `<button class="primary" data-act="build" ${canPay(BUILD_COST) ? "" : "disabled"}>城を建てる<span class="cost">${costText(BUILD_COST)}</span></button>`
+        : lv < MAX_LEVEL
+          ? `<button class="primary" data-act="upgrade" ${canPay(upgradeCost(lv)) ? "" : "disabled"}>城をLv${lv + 1}にする<span class="cost">${costText(upgradeCost(lv))}</span></button>`
+          : `<p class="hint">城は最大レベルです。</p>`;
+      actions = castleBtn + `<button data-act="hatch" ${state.balances[0] >= HATCH_FOOD ? "" : "disabled"}>ドラゴンを孵化<span class="cost">${state.dragonPrice} ${unit}・食料${HATCH_FOOD}</span></button>`;
+    }
     L.innerHTML = `
       <h2>区画 (${x}, ${y})</h2>
       <dl class="kv">
-        <dt>地形</dt><dd>${TERRAIN[terrainOf(s)].name}</dd>
+        <dt>地形</dt><dd>${TERRAIN[TER[s]].name}（${r}を生産）</dd>
         <dt>所有者</dt><dd>${ownerLabel}</dd>
+        <dt>城</dt><dd>${lv ? `Lv ${lv}` : "なし"}</dd>
+        ${o !== ZERO ? `<dt>生産量</dt><dd>${r} ${num(ratePerHour(s))} / 時</dd>` : ""}
+        ${mine ? `<dt>たまっている${r}</dt><dd id="pend-sel">${state.last[s] ? num(pending(s)) : "収穫すると生産開始"}</dd>` : ""}
         <dt>トークンID</dt><dd class="mono">#${s}</dd>
-        <dt>滞在ドラゴン</dt><dd>${here.length} 頭</dd>
       </dl>
-      ${o === ZERO ? `<button class="primary" data-act="mint">この土地を購入（${state.landPrice} ${unit}）</button>` : ""}
-      ${isMine(o) ? `<button class="primary" data-act="hatch">ドラゴンを孵化（${state.dragonPrice} ${unit}）</button>` : ""}
+      ${actions}
       ${here.map(dragonCard).join("")}`;
   }
 
-  // ドラゴンタブ
   const D = document.getElementById("view-dragon");
-  D.innerHTML = myDragons.length
-    ? `<h2>あなたのドラゴン</h2>` + myDragons.map(dragonCard).join("")
-    : `<div class="empty"><p class="hint">まだドラゴンがいません。自分の土地を選んで「ドラゴンを孵化」を押してください。</p></div>`;
+  const target = (s !== null && isMine(state.owners[s])) ? s : myLands()[0];
+  const partnerBox = state.backend?.partnerEnabled ? `
+    <div class="partner">
+      <h2>Drago保有者の相棒ドラゴン</h2>
+      <p class="hint">League of Kingdoms のDragoを持っていると、Drago 1体につき1頭、レベル5の相棒ドラゴンを無料で受け取れます。Dragoは持ち主の確認に使うだけで、移動や変更はしません。</p>
+      <label class="field" for="partner-id">DragoのトークンID
+        <input id="partner-id" inputmode="numeric" placeholder="例：38517" value="${state.partnerInput}">
+      </label>
+      <button class="primary" data-act="partner" ${target === undefined ? "disabled" : ""}>相棒ドラゴンを受け取る<span class="cost">${target === undefined ? "先に土地が必要です" : `区画 (${target % SIZE}, ${Math.floor(target / SIZE)}) に配置・無料`}</span></button>
+    </div>` : "";
+  D.innerHTML = partnerBox + (myDragons.length
+    ? `<h2>あなたのドラゴン</h2><p class="hint">訓練には「食料100×現在のレベル」が必要です。1時間に1回まで。</p>` + myDragons.map(dragonCard).join("")
+    : `<div class="empty"><p class="hint">まだドラゴンがいません。自分の土地を選んで「ドラゴンを孵化」を押してください。</p></div>`);
 
-  document.querySelectorAll("[data-act]").forEach(b => b.disabled = state.busy || !state.backend);
-  const sel = state.selected;
-  if (sel !== null) { const p = tilePos(sel); ring.position.set(p.x, TERRAIN[terrainOf(sel)].h + .01, p.z); ring.visible = true; } else ring.visible = false;
+  updateLive();
+  document.querySelectorAll("[data-act]").forEach(b => { if (state.busy || !state.backend) b.disabled = true; });
+  if (s !== null) { const p = tilePos(s); ring.position.set(p.x, TERRAIN[TER[s]].h + .01, p.z); ring.visible = true; } else ring.visible = false;
 }
+
+/* 数字だけを更新（ボタンを作り直さないので押し損じない） */
+function updateLive() {
+  if (!state.backend) return;
+  const { sum, fresh } = harvestPreview(), hb = document.getElementById("harvest");
+  const gain = sum.map((v, i) => v ? `${RES[i].name}+${num(v)}` : "").filter(Boolean).join(" ");
+  hb.innerHTML = `すべて収穫<span class="cost">${gain || "まだたまっていません"}${fresh ? `（${fresh}区画は生産開始）` : ""}${!state.starter ? "・初回ボーナス込み" : ""}</span>`;
+  hb.disabled = state.busy || !myLands().length;
+  const ps = document.getElementById("pend-sel");
+  if (ps && state.selected !== null && state.last[state.selected]) ps.textContent = num(pending(state.selected));
+  document.querySelectorAll("[data-cd]").forEach(b => {
+    const d = state.dragons[+b.dataset.cd], left = cooldownLeft(d);
+    b.firstChild.textContent = left ? `休憩中 ${fmt(left)}` : "訓練する";
+    b.disabled = state.busy || left > 0 || state.balances[0] < TRAIN_FOOD(d.level);
+  });
+}
+const cooldownLeft = d => Math.max(0, d.lastTrained + COOLDOWN - state.backend.now());
+const fmt = s => s >= 60 ? `${Math.floor(s / 60)}分${String(s % 60).padStart(2, "0")}秒` : `${s}秒`;
 
 function dragonCard(d) {
   const e = ELEMENTS[d.element], mine = isMine(d.owner);
-  const left = Math.max(0, Math.ceil(d.lastTrained + state.backend.cooldown - Date.now() / 1000));
   const canMove = mine && state.selected !== null && isMine(state.owners[state.selected]) && state.selected !== d.landId;
   return `<div class="dragon">
     <div class="el" style="background:${e.color}">${e.name}</div>
-    <div class="name">${e.name}のドラゴン #${d.id}</div>
+    <div class="name">${e.name}のドラゴン #${d.id}${d.partner ? ` <span class="badge">相棒</span>` : ""}</div>
     <div class="meta">Lv ${d.level} · パワー ${d.power} · 区画 (${d.landId % SIZE}, ${Math.floor(d.landId / SIZE)})${mine ? "" : ` · ${short(d.owner)}`}</div>
     ${mine ? `<div class="row">
-      <button data-act="train" data-id="${d.id}" ${left ? "disabled" : ""}>${left ? `休憩中 ${fmt(left)}` : "訓練する"}</button>
+      <button data-act="train" data-id="${d.id}" data-cd="${d.id}">訓練する<span class="cost">食料${num(TRAIN_FOOD(d.level))}</span></button>
       ${canMove ? `<button data-act="move" data-id="${d.id}">選択中の区画へ移動</button>` : ""}
       <button data-act="focus" data-id="${d.id}">見る</button>
     </div>` : ""}
   </div>`;
 }
-const fmt = s => s >= 60 ? `${Math.floor(s / 60)}分${String(s % 60).padStart(2, "0")}秒` : `${s}秒`;
 
 /* ===================== 操作 ===================== */
 let toastTimer;
@@ -368,17 +475,24 @@ const ERRORS = {
   "already owned": "この区画はすでに誰かが所有しています。",
   "not your land": "自分の土地でしか操作できません。",
   "not your dragon": "自分のドラゴンではありません。",
+  "castle exists": "この区画にはすでに城があります。",
+  "not partner holder": "このDragoの持ち主ではありません。接続中のウォレットで持っているDragoのIDを入力してください。",
+  "partner already claimed": "このDragoの相棒ドラゴンは受け取り済みです。",
+  "partner disabled": "このネットワークでは相棒ドラゴンは使えません。",
+  "max level": "城は最大レベルです。",
   "dragon is resting": "ドラゴンは休憩中です。時間をおいて訓練してください。",
+  "insufficient balance": "資材が足りません。土地から収穫してください。",
+  "ERC1155InsufficientBalance": "資材が足りません。土地から収穫してください。",
   "not enough ETH": "支払い額が足りません。",
-  "insufficient funds": "ウォレットの残高が足りません。faucet でテスト用ETHを入手してください。",
+  "insufficient funds": "ウォレットのETHが足りません。",
 };
 function explain(e) {
   if (e?.code === "ACTION_REJECTED" || e?.code === 4001) return "ウォレットで取り消されました。";
-  const msg = (e?.reason || e?.shortMessage || e?.message || "") + "";
+  const msg = [e?.reason, e?.shortMessage, e?.revert?.name, e?.message].filter(Boolean).join(" ");
   for (const k in ERRORS) if (msg.includes(k)) return ERRORS[k];
   return "処理に失敗しました：" + msg.slice(0, 120);
 }
-async function run(label, fn, done) {
+async function run(fn, done) {
   if (state.busy) return;
   state.busy = true; render();
   try { if (state.backend.kind === "chain") toast("ウォレットで承認してください"); await fn(); await refresh(); toast(done); }
@@ -386,14 +500,30 @@ async function run(label, fn, done) {
   finally { state.busy = false; render(); }
 }
 
+document.querySelector(".panel").addEventListener("input", e => { if (e.target.id === "partner-id") state.partnerInput = e.target.value; });
 document.querySelector(".panel").addEventListener("click", e => {
   const b = e.target.closest("button"); if (!b) return;
   if (b.id === "tab-land" || b.id === "tab-dragon") { state.tab = b.id === "tab-land" ? "land" : "dragon"; return render(); }
-  const act = b.dataset.act, id = Number(b.dataset.id), s = state.selected;
-  if (act === "mint") run("mint", () => state.backend.mintLand(s % SIZE, Math.floor(s / SIZE)), "土地を手に入れました");
-  if (act === "hatch") run("hatch", () => state.backend.hatch(s), "ドラゴンが孵化しました");
-  if (act === "train") run("train", () => state.backend.train(id), "訓練でレベルが上がりました");
-  if (act === "move") run("move", () => state.backend.moveTo(id, s), "ドラゴンが移動しました");
+  const act = b.dataset.act, id = Number(b.dataset.id), s = state.selected, B = state.backend;
+  if (act === "harvest") run(() => B.harvest(myLands()), "収穫しました");
+  if (act === "mint") run(() => B.mintLand(s % SIZE, Math.floor(s / SIZE)), "土地を手に入れました");
+  if (act === "build") run(() => B.build(s), "城が完成しました");
+  if (act === "upgrade") run(() => B.upgrade(s), `城がLv${state.levels[s] + 1}になりました`);
+  if (act === "hatch") run(() => B.hatch(s), "ドラゴンが孵化しました");
+  if (act === "train") run(() => B.train(id), "訓練でレベルが上がりました");
+  if (act === "move") run(() => B.moveTo(id, s), "ドラゴンが移動しました");
+  if (act === "partner") {
+    const tid = Number(state.partnerInput.trim());
+    const target = (s !== null && isMine(state.owners[s])) ? s : myLands()[0];
+    if (!Number.isInteger(tid) || tid < 0 || !state.partnerInput.trim()) return toast("DragoのトークンIDを数字で入力してください。", true);
+    run(async () => {
+      const chk = await B.checkPartner(tid);
+      if (chk.claimed) throw new Error("partner already claimed");
+      if (!isMine(chk.owner)) throw new Error("not partner holder");
+      await B.claimPartner(tid, target);
+      state.partnerInput = "";
+    }, "相棒ドラゴンがやってきました");
+  }
   if (act === "focus") { const d = state.dragons[id]; state.selected = d.landId; state.tab = "land"; const p = tilePos(d.landId); controls.target.set(p.x, 0, p.z); render(); }
 });
 
@@ -401,19 +531,17 @@ document.getElementById("connect").addEventListener("click", async () => {
   try {
     const chain = await makeChain();
     state.backend = chain; state.account = chain.account;
-    document.getElementById("mode").textContent = `${CONFIG.CHAIN_NAME} · ${short(chain.account)}`;
-    document.getElementById("mode").classList.add("live");
+    const m = document.getElementById("mode"); m.textContent = `${CONFIG.CHAIN_NAME} · ${short(chain.account)}`; m.classList.add("live");
     document.getElementById("connect").hidden = true;
-    await refresh(); toast("ウォレットに接続しました");
+    state.selected = null; await refresh(); toast("ウォレットに接続しました");
   } catch (e) {
-    const m = { NO_WALLET: "ウォレットが見つかりません。MetaMaskアプリ内のブラウザで開くと接続できます。今はデモで遊べます。",
-      NO_CONFIG: "コントラクトのアドレスがまだ設定されていません。デプロイ後、CONFIG に貼り付けてください。",
+    const m = { NO_WALLET: "ウォレットが見つかりません。MetaMaskを入れたブラウザで開いてください。今はデモで遊べます。",
+      NO_CONFIG: "コントラクトのアドレスがまだ設定されていません。デプロイ後に設定してください。",
       WRONG_CHAIN: `ウォレットを ${CONFIG.CHAIN_NAME} ネットワークに切り替えてください。` }[e.message];
     toast(m || explain(e), true);
   }
 });
 
-/* タップで区画を選択 (ドラッグとは区別) */
 const ray = new THREE.Raycaster(), ptr = new THREE.Vector2(); let down = null;
 renderer.domElement.addEventListener("pointerdown", e => down = { x: e.clientX, y: e.clientY });
 renderer.domElement.addEventListener("pointerup", e => {
@@ -425,10 +553,7 @@ renderer.domElement.addEventListener("pointerup", e => {
   state.selected = hit ? hit.object.userData.landId : null; state.tab = "land"; render();
 });
 
-function resize() {
-  const w = host.clientWidth, h = host.clientHeight;
-  renderer.setSize(w, h); camera.aspect = w / h; camera.updateProjectionMatrix();
-}
+function resize() { const w = host.clientWidth, h = host.clientHeight; renderer.setSize(w, h); camera.aspect = w / h; camera.updateProjectionMatrix(); }
 addEventListener("resize", resize); resize();
 
 const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -436,21 +561,19 @@ const clock = new THREE.Clock(); let tick = 0;
 renderer.setAnimationLoop(() => {
   const t = still ? 0 : clock.getElapsedTime();
   dragonGroup.children.forEach(g => {
-    const d = g.userData.d, p = tilePos(d.landId), a = t * .7 + g.userData.phase, r = .9;
-    g.position.set(p.x + Math.cos(a) * r, 1.6 + Math.sin(t * 2 + g.userData.phase) * .12, p.z + Math.sin(a) * r);
-    g.rotation.y = -a;   // 円の接線方向を向く
+    const d = g.userData.d, p = tilePos(d.landId), a = t * .7 + g.userData.phase;
+    g.position.set(p.x + Math.cos(a) * .9, 1.6 + Math.sin(t * 2 + g.userData.phase) * .12, p.z + Math.sin(a) * .9);
+    g.rotation.y = -a;
     g.userData.wings.forEach(w => w.pivot.rotation.z = w.s * Math.sin(t * 8 + g.userData.phase) * .6);
   });
-  ring.material.opacity = 1;
   controls.update(); renderer.render(scene, camera);
-  if (++tick % 60 === 0 && state.tab === "dragon" && !state.busy) render();  // 休憩タイマー更新
+  if (++tick % 30 === 0) updateLive();
 });
 
-/* デモで開始 */
 (async () => {
   const demo = makeDemo(); state.backend = demo; state.account = demo.account;
-  await refresh(); state.selected = 9 * SIZE + 9; render();
-  const p = tilePos(state.selected); controls.target.set(p.x * .5, 0, p.z * .5);
+  await refresh(); state.selected = demo.focus; render();
+  const p = tilePos(demo.focus); controls.target.set(p.x * .5, 0, p.z * .5);
 })();
 </script>
 </body></html>

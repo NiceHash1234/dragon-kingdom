@@ -1,68 +1,68 @@
-# ドラゴンキングダム — デプロイ手順
+# ドラゴンキングダム
 
-土地NFT（KingdomLand）とドラゴンNFT（KingdomDragon）を Sepolia テストネットで動かす手順です。本物のお金は使いません。
+土地・城・ドラゴン・資材の4種類のNFTで遊ぶ、3Dの王国ゲームです。
 
-## 中身
+- ゲーム：`index.html`
+- デプロイ用ページ：`deploy.html`
+- コントラクト：`DragonKingdom.sol`（Solidity 0.8.24 / OpenZeppelin 5）
 
-| ファイル | 内容 |
-|---|---|
-| `contracts/DragonKingdom.sol` | 2つのNFTコントラクト（ERC-721） |
-| `game/index.html` | 3Dゲーム画面（ウォレット接続対応、ファイル1つで動作） |
+## NFTの種類
 
-## 1. 準備
+| NFT | 規格 | 内容 |
+|---|---|---|
+| 土地 | ERC-721 | 20×20＝400区画。地形ごとに資材を生産 |
+| 資材 | ERC-1155 | ID 0:食料 1:木材 2:石材 3:金。土地から収穫して手に入る |
+| 城 | ERC-721 | 土地の上に1つ建てられる（ID＝土地のID）。Lv1〜10 |
+| ドラゴン | ERC-721 | 自分の土地で孵化。属性（炎・氷・雷・闇）とパワーはランダム |
 
-1. MetaMask をインストールし、ネットワークを **Sepolia** に切り替える
-   （設定 → 詳細 → 「テストネットを表示」をオン）
-2. faucet で Sepolia ETH を入手する（例：Google Cloud Web3 Faucet、Alchemy Sepolia Faucet）
-   0.05 ETH ほどあれば十分です
+どのNFTもOpenSeaで画像と属性つきで表示されます（Baseなどの本番チェーンにデプロイした場合）。
 
-## 2. コントラクトをデプロイ（Remix）
+## ゲームの流れ
 
-1. https://remix.ethereum.org を開く
-2. 新しいファイル `DragonKingdom.sol` を作り、`contracts/DragonKingdom.sol` の中身を貼り付ける
-   （OpenZeppelin の import は Remix が自動で読み込みます）
-3. 左の「Solidity Compiler」でバージョン **0.8.24 以上** を選び、Compile
-4. 左の「Deploy & Run」で Environment を **Injected Provider - MetaMask** にする
-5. Contract で **KingdomLand** を選び Deploy → MetaMask で承認
-   → 表示されたアドレスをメモ（これが LAND_ADDRESS）
-6. Contract で **KingdomDragon** を選び、Deploy の横の欄に 5 のアドレスを入れて Deploy
-   → このアドレスが DRAGON_ADDRESS
+1. **土地を買う**：地形で生産する資材が決まります（草原→食料、森→木材、山→石材、砂漠→金）
+2. **収穫する**：1区画あたり毎時100（金は20）。たまるのは最大24時間分。初回の収穫では、城を1つ建てられる分の初回ボーナス（食料1000・木材1000・石材1000・金100）がもらえます
+3. **城を建てる**：木材500・石材500。城のレベル1ごとに、その土地の生産量が+50%
+4. **城を強化する**：Lv n→n+1 で 食料300n・木材600n・石材600n・金50n
+5. **ドラゴンを孵化**：孵化価格 ＋ 食料300
+6. **ドラゴンを訓練**：食料100×現在のレベル、1時間に1回
 
-## 3. ゲーム画面を設定
+城のボーナスは、城と土地の持ち主が同じときだけ有効です。
 
-`game/index.html` を開き、`CONFIG` の2つのアドレスを書き換えます。
+## 価格（デプロイ時に自動設定）
 
-```js
-const CONFIG = {
-  LAND_ADDRESS:   "0x…(KingdomLand のアドレス)",
-  DRAGON_ADDRESS: "0x…(KingdomDragon のアドレス)",
-  CHAIN_ID: 11155111,
-  CHAIN_NAME: "Sepolia",
-};
-```
+| ネットワーク | 土地 | ドラゴン孵化 | Drago連動 |
+|---|---|---|---|
+| Polygon | 1 POL | 2 POL | あり |
+| Sepolia | 0.001 ETH | 0.002 ETH | なし |
+| Base | 0.001 ETH | 0.002 ETH | なし |
 
-## 4. 公開して遊ぶ
+## Drago保有者の相棒ドラゴン（Polygonのみ）
 
-ウォレット接続には https の普通のWebページが必要です。どれか1つで公開してください。
+League of Kingdoms の Drago（Polygon・`0x9e8ea82e76262e957d4cc24e04857a34b0d8f062`）を持っていると、Drago 1体につき1頭、レベル5・パワー100以上の相棒ドラゴンを無料で受け取れます（自分の土地が1つ必要）。
 
-- **GitHub Pages**：リポジトリに `index.html` を置き、Settings → Pages で公開
-- **Netlify Drop**：https://app.netlify.com/drop に `game` フォルダをドラッグ
-- **Vercel**：フォルダをインポートするだけ
+- コントラクトは `ownerOf` で持ち主を確認するだけです。Dragoの移動・ロック・変更は一切しません
+- 同じDragoで受け取れるのは1回だけです。売却後の新しい持ち主も受け取れません
+- 相棒ドラゴンはこのゲーム独自のNFTで、元のゲームの画像や名前は使いません
 
-スマホでは **MetaMaskアプリ内のブラウザ** でそのURLを開き、「ウォレット接続」を押します。
+## デプロイ手順
 
-## ゲームのルール（コントラクトで決まっていること）
+1. MetaMaskを入れたPCのChromeで `deploy.html` を開く
+2. ネットワークを選ぶ
+   - **Polygon**：Drago連動あり。OpenSeaに表示されます。手数料用に少額のPOLが必要です（デプロイ全体で数POL程度）
+   - **Sepolia**：無料のテストネット。動作確認用。OpenSeaには表示されません
+   - **Base**：OpenSeaに表示されます。ETHの実費がかかります
+3. 「ウォレットを接続してデプロイ開始」を押し、MetaMaskで7回承認する
+   （途中で止まっても、もう一度押せば続きから再開します）
+4. 表示された `CONFIG` を `index.html` の `CONFIG` と入れ替える
 
-- 土地：20×20＝400区画。1区画 0.001 ETH。tokenId = y × 20 + x
-- 地形（草原・森・山・砂漠）は座標から自動で決まる
-- ドラゴン：自分の土地でのみ孵化（0.002 ETH）。属性（炎・氷・雷・闇）とパワー（50〜149）はランダム
-- 訓練：1時間に1回レベル+1。自分の別の土地へ移動可能
-- OpenSea のテストネット版などで、どちらのNFTも属性つきで表示されます
-- 価格はデプロイした人が `setLandPrice` / `setDragonPrice` で変更、売上は `withdraw` で引き出し
+デプロイしたウォレットが4つのコントラクトの所有者になり、価格変更（`setLandPrice` / `setDragonPrice`）と売上の引き出し（`withdraw`）ができます。
 
-## メインネットに出す前に必要なこと
+## 他の人に販売する前に
 
-- 乱数を Chainlink VRF に置き換える（今は予測可能な簡易乱数）
+- 乱数を Chainlink VRF に置き換える（今は予測できる簡易乱数）
 - 専門家によるセキュリティ監査
-- 画像（ドラゴンや土地のイラスト）を IPFS に置き、`tokenURI` に image を追加
-- 利用規約や、地域ごとの法規制（NFT販売・景品表示など）の確認
+- 利用規約や、地域ごとの法規制の確認
+
+## テスト
+
+Foundry のテストで、収穫・城の建設と強化・孵化・訓練・相棒ドラゴンの受け取り（二重受け取りの防止を含む）・権限チェックを確認済みです。
